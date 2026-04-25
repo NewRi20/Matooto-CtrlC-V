@@ -1,13 +1,25 @@
 import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 export default function ProfileScreen() {
+  const router = useRouter();
+
+  const handleLogout = () => {
+    router.replace('/login');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
       </View>
       <View style={styles.content}>
+        <View style={styles.avatarContainer}>
+          <Ionicons name="person-circle" size={100} color="#146C43" />
+        </View>
+        
         <Text style={styles.name}>Student Name</Text>
         <Text style={styles.section}>Section 3A - Science</Text>
         
@@ -21,6 +33,11 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>Total Reading Time</Text>
           </View>
         </View>
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Ionicons name="log-out-outline" size={20} color="#D32F2F" style={styles.logoutIcon} />
+          <Text style={styles.logoutText}>Log Out</Text>
+        </TouchableOpacity>
       </View>
     </SafeAreaView>
   );
@@ -47,22 +64,26 @@ const styles = StyleSheet.create({
     padding: 20,
     alignItems: 'center',
   },
+  avatarContainer: {
+    marginTop: 20,
+    marginBottom: 10,
+  },
   name: {
     fontSize: 22,
     fontWeight: 'bold',
     color: '#333',
-    marginTop: 20,
   },
   section: {
     fontSize: 16,
     color: '#666',
     marginTop: 5,
-    marginBottom: 30,
+    marginBottom: 40,
   },
   statsContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
+    marginBottom: 40,
   },
   statBox: {
     backgroundColor: '#FFF',
@@ -86,5 +107,27 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#666',
     textAlign: 'center',
+  },
+  logoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+    backgroundColor: '#FFEBEE',
+    borderWidth: 1,
+    borderColor: '#FFCDD2',
+    marginTop: 'auto',
+    marginBottom: 20,
+    width: '100%',
+  },
+  logoutIcon: {
+    marginRight: 10,
+  },
+  logoutText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#D32F2F',
   },
 });

@@ -10,8 +10,11 @@ export default function SignupScreen() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
 
   const handleGoogleSignup = () => {
-    // Navigate to dashboard
-    router.replace('/(tabs)');
+    if (role === 'Teacher') {
+      router.replace('/(teacher)' as any);
+    } else {
+      router.replace('/(tabs)');
+    }
   };
 
   return (

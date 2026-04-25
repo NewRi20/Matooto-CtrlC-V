@@ -30,8 +30,8 @@ export default function TeacherTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Dashboard',
-          tabBarIcon: ({ color }) => <Ionicons size={24} name="stats-chart" color={color} />,
+          title: 'Home',
+          tabBarIcon: ({ color }) => <Ionicons size={24} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
@@ -58,8 +58,7 @@ export default function TeacherTabLayout() {
       <Tabs.Screen
         name="settings"
         options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <Ionicons size={24} name="settings" color={color} />,
+          href: null,
         }}
       />
     </Tabs>

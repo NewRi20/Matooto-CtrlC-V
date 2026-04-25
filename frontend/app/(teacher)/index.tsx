@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 export default function TeacherDashboard() {
   const router = useRouter();
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
-        
+
         {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
@@ -19,16 +20,27 @@ export default function TeacherDashboard() {
               <Text style={styles.logoSub}>Learn. Grow. Soar.</Text>
             </View>
           </View>
-          
+
           <View style={styles.headerIcons}>
             <TouchableOpacity style={styles.bellIcon}>
               <Ionicons name="notifications-outline" size={24} color="#333" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => router.replace('/login')}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarText}>AJ</Text>
-              </View>
-            </TouchableOpacity>
+            <View style={{ position: 'relative', zIndex: 10 }}>
+              <TouchableOpacity onPress={() => setShowProfileMenu(!showProfileMenu)}>
+                <View style={styles.avatar}>
+                  <Text style={styles.avatarText}>AJ</Text>
+                </View>
+              </TouchableOpacity>
+              
+              {showProfileMenu && (
+                <View style={styles.profileMenu}>
+                  <TouchableOpacity style={styles.menuItem} onPress={() => { setShowProfileMenu(false); router.replace('/login'); }}>
+                    <Ionicons name="log-out-outline" size={20} color="#D32F2F" />
+                    <Text style={styles.menuItemText}>Log Out</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
           </View>
         </View>
 
@@ -92,23 +104,6 @@ export default function TeacherDashboard() {
           </View>
         </View>
 
-        {/* Import Section */}
-        <Text style={[styles.sectionTitle, { marginTop: 10 }]}>IMPORT</Text>
-        <View style={styles.importContainer}>
-          <TouchableOpacity style={styles.importButton}>
-            <View style={styles.iconBox}>
-              <Text style={{ fontWeight: 'bold', fontSize: 16 }}>N</Text>
-            </View>
-            <Text style={styles.importText}>Import from Notion</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.importButton}>
-            <View style={styles.iconBox}>
-              <Ionicons name="grid-outline" size={18} color="#146C43" />
-            </View>
-            <Text style={styles.importText}>Import from Excel</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Pending Stories */}
         <View style={styles.sectionHeader}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -132,7 +127,7 @@ export default function TeacherDashboard() {
             </TouchableOpacity>
           </View>
           <View style={styles.divider} />
-          
+
           {/* Story 2 */}
           <View style={styles.listItem}>
             <Ionicons name="document-text-outline" size={24} color="#146C43" />
@@ -163,7 +158,7 @@ export default function TeacherDashboard() {
               <Text style={styles.generateText}>Generate</Text>
             </View>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.reportCard}>
             <Ionicons name="stats-chart" size={32} color="#146C43" />
             <View style={{ marginLeft: 10, flex: 1 }}>
@@ -487,5 +482,32 @@ const styles = StyleSheet.create({
     color: '#146C43',
     fontSize: 12,
     fontWeight: 'bold',
+  },
+  profileMenu: {
+    position: 'absolute',
+    top: 45,
+    right: 0,
+    backgroundColor: '#FFF',
+    borderRadius: 8,
+    padding: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    minWidth: 120,
+    zIndex: 100,
+  },
+  menuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 5,
+  },
+  menuItemText: {
+    color: '#D32F2F',
+    fontWeight: 'bold',
+    marginLeft: 8,
+    fontSize: 14,
   },
 });

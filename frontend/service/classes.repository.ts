@@ -42,8 +42,8 @@ export interface StudentProfile {
 
 // Generates a unique class code (6 alphanumeric characters)
 const generateClassCode = (): string => {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let code = '';
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
   for (let i = 0; i < 6; i++) {
     code += characters.charAt(Math.floor(Math.random() * characters.length));
   }
@@ -53,8 +53,10 @@ const generateClassCode = (): string => {
 // creates a new class document in Firestore
 export const createClass = async (classData: CreateClassInput) => {
   try {
-    const teacherRef = doc(db, 'users', classData.teacherUid);
-    const studentRefs = (classData.studentUids ?? []).map((uid) => doc(db, 'users', uid));
+    const teacherRef = doc(db, "users", classData.teacherUid);
+    const studentRefs = (classData.studentUids ?? []).map((uid) =>
+      doc(db, "users", uid),
+    );
 
     const newClassData = {
       className: classData.className,
@@ -65,11 +67,11 @@ export const createClass = async (classData: CreateClassInput) => {
       classCode: generateClassCode(),
     };
 
-    const docRef = await addDoc(collection(db, 'classes'), newClassData);
-    console.log('Class created with ID: ', docRef.id);
+    const docRef = await addDoc(collection(db, "classes"), newClassData);
+    console.log("Class created with ID: ", docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error('Error creating class: ', error);
+    console.error("Error creating class: ", error);
     throw error;
   }
 };
@@ -111,17 +113,22 @@ export const enrollStudentsBatch = async (
  * @param classId - The ID of the class document
  * @param studentUid - The plain string ID of the student to remove
  */
-export const removeStudentFromClass = async (classId: string, studentUid: string) => {
+export const removeStudentFromClass = async (
+  classId: string,
+  studentUid: string,
+) => {
   try {
-    const classRef = doc(db, 'classes', classId);
+    const classRef = doc(db, "classes", classId);
 
-    const studentRef = doc(db, 'users', studentUid);
+    const studentRef = doc(db, "users", studentUid);
 
     await updateDoc(classRef, {
-      studentIds: arrayRemove(studentRef)
+      studentIds: arrayRemove(studentRef),
     });
 
-    console.log(`Student ${studentUid} successfully removed from class ${classId}`);
+    console.log(
+      `Student ${studentUid} successfully removed from class ${classId}`,
+    );
   } catch (error) {
     console.error("Error removing student: ", error);
     throw error;
@@ -164,20 +171,20 @@ export const getClassesByTeacher = async (teacherUid: string) => {
  */
 export const getClassesByStudent = async (studentUid: string) => {
   try {
-    const studentRef = doc(db, 'users', studentUid);
-    
+    const studentRef = doc(db, "users", studentUid);
+
     const q = query(
-      collection(db, 'classes'), 
-      where('studentIds', 'array-contains', studentRef)
+      collection(db, "classes"),
+      where("studentIds", "array-contains", studentRef),
     );
 
     const querySnapshot = await getDocs(q);
-    
+
     const classes: ClassData[] = [];
     querySnapshot.forEach((docSnap) => {
       classes.push({
         id: docSnap.id,
-        ...(docSnap.data() as Omit<ClassData, 'id'>)
+        ...(docSnap.data() as Omit<ClassData, "id">),
       });
     });
 
@@ -195,8 +202,8 @@ export const getClassesByStudent = async (studentUid: string) => {
 export const getClassByCode = async (classCode: string) => {
   try {
     const q = query(
-      collection(db, 'classes'),
-      where('classCode', '==', classCode.toUpperCase())
+      collection(db, "classes"),
+      where("classCode", "==", classCode.toUpperCase()),
     );
 
     const querySnapshot = await getDocs(q);
@@ -208,10 +215,10 @@ export const getClassByCode = async (classCode: string) => {
     const docSnap = querySnapshot.docs[0];
     return {
       id: docSnap.id,
-      ...(docSnap.data() as Omit<ClassData, 'id'>),
+      ...(docSnap.data() as Omit<ClassData, "id">),
     };
   } catch (error) {
-    console.error('Error fetching class by code: ', error);
+    console.error("Error fetching class by code: ", error);
     throw error;
   }
 };
@@ -222,10 +229,10 @@ export const getClassByCode = async (classCode: string) => {
  */
 export const deleteClass = async (classId: string) => {
   try {
-    const classRef = doc(db, 'classes', classId);
-    
+    const classRef = doc(db, "classes", classId);
+
     await deleteDoc(classRef);
-    
+
     console.log(`Successfully deleted class: ${classId}`);
   } catch (error) {
     console.error("Error deleting class: ", error);
@@ -239,7 +246,7 @@ export const deleteClass = async (classId: string) => {
  */
 export const getClassById = async (classId: string) => {
   try {
-    const classRef = doc(db, 'classes', classId);
+    const classRef = doc(db, "classes", classId);
     const classSnap = await getDoc(classRef);
 
     if (!classSnap.exists()) {
@@ -248,10 +255,10 @@ export const getClassById = async (classId: string) => {
 
     return {
       id: classSnap.id,
-      ...(classSnap.data() as Omit<ClassData, 'id'>),
+      ...(classSnap.data() as Omit<ClassData, "id">),
     };
   } catch (error) {
-    console.error('Error fetching class by ID: ', error);
+    console.error("Error fetching class by ID: ", error);
     throw error;
   }
 };
@@ -261,22 +268,25 @@ export const getClassById = async (classId: string) => {
  * @param classCode - The class code entered by the student
  * @param studentUid - The plain string ID of the student
  */
-export const joinClassByCode = async (classCode: string, studentUid: string) => {
+export const joinClassByCode = async (
+  classCode: string,
+  studentUid: string,
+) => {
   try {
     const classData = await getClassByCode(classCode);
 
     if (!classData) {
-      throw new Error('Class not found. Please check the code and try again.');
+      throw new Error("Class not found. Please check the code and try again.");
     }
 
     // Check if student is already enrolled
-    const studentRef = doc(db, 'users', studentUid);
+    const studentRef = doc(db, "users", studentUid);
     const isAlreadyEnrolled = classData.studentIds.some(
-      (ref) => ref.id === studentUid
+      (ref) => ref.id === studentUid,
     );
 
     if (isAlreadyEnrolled) {
-      throw new Error('You are already enrolled in this class.');
+      throw new Error("You are already enrolled in this class.");
     }
 
     // Enroll the student
@@ -288,8 +298,7 @@ export const joinClassByCode = async (classCode: string, studentUid: string) => 
       className: classData.className,
     };
   } catch (error) {
-    console.error('Error joining class by code: ', error);
+    console.error("Error joining class by code: ", error);
     throw error;
   }
 };
-

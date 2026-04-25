@@ -1,23 +1,45 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Share } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  Share,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { auth } from '@/service/firebaseConfig';
-import { getClassById, type ClassData, type StudentProfile } from '@/service/classes.repository';
-import { getDoc } from 'firebase/firestore';
+import { auth } from "@/service/firebaseConfig";
+import {
+  getClassById,
+  type ClassData,
+  type StudentProfile,
+} from "@/service/classes.repository";
+import { getDoc } from "firebase/firestore";
 
 const isDocumentRef = (value: unknown): value is { id: string } =>
-  value !== null && typeof value === 'object' && 'id' in value && typeof (value as { id?: unknown }).id === 'string';
+  value !== null &&
+  typeof value === "object" &&
+  "id" in value &&
+  typeof (value as { id?: unknown }).id === "string";
 
 const isPresent = <T,>(value: T | null): value is T => value !== null;
 
 export default function ClassDetailsScreen() {
   const { classId } = useLocalSearchParams();
   const router = useRouter();
-  const classIdValue = useMemo(() => (Array.isArray(classId) ? classId[0] : classId), [classId]);
+  const classIdValue = useMemo(
+    () => (Array.isArray(classId) ? classId[0] : classId),
+    [classId],
+  );
   const [classData, setClassData] = useState<ClassData | null>(null);
-  const [students, setStudents] = useState<Array<StudentProfile & { score: number; flag: boolean }>>([]);
+  const [students, setStudents] = useState<
+    Array<StudentProfile & { score: number; flag: boolean }>
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,19 +73,22 @@ export default function ClassDetailsScreen() {
 
             return {
               id: studentSnap.id,
-              fullName: typeof data.fullName === 'string' && data.fullName ? data.fullName : `Student ${index + 1}`,
-              email: typeof data.email === 'string' ? data.email : null,
-              role: typeof data.role === 'string' ? data.role : '',
+              fullName:
+                typeof data.fullName === "string" && data.fullName
+                  ? data.fullName
+                  : `Student ${index + 1}`,
+              email: typeof data.email === "string" ? data.email : null,
+              role: typeof data.role === "string" ? data.role : "",
               onboarding: Boolean(data.onboarding),
               score: Math.max(40, 95 - index * 8),
               flag: index % 3 === 2,
             };
-          })
+          }),
         );
 
         setStudents(studentProfiles.filter(isPresent));
       } catch (error) {
-        Alert.alert('Unable to load class', 'Please try again.');
+        Alert.alert("Unable to load class", "Please try again.");
       } finally {
         setLoading(false);
       }
@@ -77,10 +102,10 @@ export default function ClassDetailsScreen() {
     try {
       await Share.share({
         message: `Join my class "${classData.className}" using the code: ${classData.classCode}`,
-        title: 'Class Code',
+        title: "Class Code",
       });
     } catch (error) {
-      console.error('Share error:', error);
+      console.error("Share error:", error);
     }
   };
 
@@ -100,7 +125,10 @@ export default function ClassDetailsScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.centerState}>
           <Text style={styles.centerStateText}>Class not found.</Text>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backFallbackButton}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={styles.backFallbackButton}
+          >
             <Text style={styles.backFallbackText}>Go Back</Text>
           </TouchableOpacity>
         </View>
@@ -111,7 +139,10 @@ export default function ClassDetailsScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 15 }}>
+        <TouchableOpacity
+          onPress={() => router.back()}
+          style={{ marginRight: 15 }}
+        >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <View style={styles.headerContent}>
@@ -129,7 +160,10 @@ export default function ClassDetailsScreen() {
             <Text style={styles.codeBannerCode}>{classData.classCode}</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.codeBannerShareButton} onPress={handleShareCode}>
+        <TouchableOpacity
+          style={styles.codeBannerShareButton}
+          onPress={handleShareCode}
+        >
           <Ionicons name="share-social" size={18} color="#146C43" />
         </TouchableOpacity>
       </View>
@@ -147,10 +181,14 @@ export default function ClassDetailsScreen() {
             <TouchableOpacity
               key={student.id}
               style={styles.studentCard}
-              onPress={() => router.push(`/(teacher)/classes/student/${student.id}` as any)}
+              onPress={() =>
+                router.push(`/(teacher)/classes/student/${student.id}` as any)
+              }
             >
               <View style={styles.avatar}>
-                <Text style={styles.avatarText}>{student.fullName.charAt(0)}</Text>
+                <Text style={styles.avatarText}>
+                  {student.fullName.charAt(0)}
+                </Text>
               </View>
 
               <View style={styles.studentInfo}>
@@ -158,13 +196,15 @@ export default function ClassDetailsScreen() {
 
                 <View style={styles.progressContainer}>
                   <View style={styles.progressBarBg}>
-                    <View style={[
-                      styles.progressBarFill,
-                      {
-                        width: `${student.score}%`,
-                        backgroundColor: student.flag ? '#D32F2F' : '#146C43'
-                      }
-                    ]} />
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        {
+                          width: `${student.score}%`,
+                          backgroundColor: student.flag ? "#D32F2F" : "#146C43",
+                        },
+                      ]}
+                    />
                   </View>
                   <Text style={styles.scoreText}>{student.score}%</Text>
                 </View>
@@ -187,33 +227,101 @@ export default function ClassDetailsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FAF9F6' },
-  header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  container: { flex: 1, backgroundColor: "#FAF9F6" },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 20,
+    backgroundColor: "#FFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#EEE",
+  },
   headerContent: { flex: 1 },
-  headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#146C43' },
-  headerSub: { fontSize: 14, color: '#666' },
-  codeBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', marginHorizontal: 20, marginTop: 15, marginBottom: 15, paddingHorizontal: 15, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: '#C8E6C9' },
-  codeInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  codeLabel: { fontSize: 11, fontWeight: '600', color: '#2E7D32' },
-  codeBannerCode: { fontSize: 16, fontWeight: '700', color: '#146C43', marginTop: 2 },
+  headerTitle: { fontSize: 20, fontWeight: "bold", color: "#146C43" },
+  headerSub: { fontSize: 14, color: "#666" },
+  codeBanner: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E8F5E9",
+    marginHorizontal: 20,
+    marginTop: 15,
+    marginBottom: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#C8E6C9",
+  },
+  codeInfo: { flexDirection: "row", alignItems: "center", flex: 1 },
+  codeLabel: { fontSize: 11, fontWeight: "600", color: "#2E7D32" },
+  codeBannerCode: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#146C43",
+    marginTop: 2,
+  },
   codeBannerShareButton: { padding: 8, marginLeft: 10 },
   content: { padding: 20 },
-  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  centerStateText: { marginTop: 12, color: '#666' },
-  backFallbackButton: { marginTop: 14, backgroundColor: '#146C43', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 10 },
-  backFallbackText: { color: '#FFF', fontWeight: '700' },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 15 },
-  noStudents: { alignItems: 'center', paddingVertical: 40 },
-  noStudentsText: { marginTop: 12, color: '#999', fontSize: 14 },
-  studentCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 12, padding: 15, marginBottom: 12, borderWidth: 1, borderColor: '#EEE' },
-  avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  avatarText: { fontSize: 18, fontWeight: 'bold', color: '#666' },
+  centerState: { flex: 1, alignItems: "center", justifyContent: "center" },
+  centerStateText: { marginTop: 12, color: "#666" },
+  backFallbackButton: {
+    marginTop: 14,
+    backgroundColor: "#146C43",
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  backFallbackText: { color: "#FFF", fontWeight: "700" },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 15,
+  },
+  noStudents: { alignItems: "center", paddingVertical: 40 },
+  noStudentsText: { marginTop: 12, color: "#999", fontSize: 14 },
+  studentCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#EEE",
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#E0E0E0",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  avatarText: { fontSize: 18, fontWeight: "bold", color: "#666" },
   studentInfo: { flex: 1, marginRight: 10 },
-  studentName: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 8 },
-  progressContainer: { flexDirection: 'row', alignItems: 'center' },
-  progressBarBg: { flex: 1, height: 6, backgroundColor: '#F0F0F0', borderRadius: 3, marginRight: 10 },
-  progressBarFill: { height: '100%', borderRadius: 3 },
-  scoreText: { fontSize: 12, color: '#666', fontWeight: 'bold', width: 35 },
-  flagContainer: { alignItems: 'center' },
-  flagText: { fontSize: 10, color: '#D32F2F', fontWeight: 'bold', marginTop: 2 }
+  studentName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
+  },
+  progressContainer: { flexDirection: "row", alignItems: "center" },
+  progressBarBg: {
+    flex: 1,
+    height: 6,
+    backgroundColor: "#F0F0F0",
+    borderRadius: 3,
+    marginRight: 10,
+  },
+  progressBarFill: { height: "100%", borderRadius: 3 },
+  scoreText: { fontSize: 12, color: "#666", fontWeight: "bold", width: 35 },
+  flagContainer: { alignItems: "center" },
+  flagText: {
+    fontSize: 10,
+    color: "#D32F2F",
+    fontWeight: "bold",
+    marginTop: 2,
+  },
 });

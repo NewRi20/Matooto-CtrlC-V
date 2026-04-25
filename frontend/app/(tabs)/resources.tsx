@@ -1,28 +1,160 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { auth } from '@/service/firebaseConfig';
+import { getClassesByStudent } from '@/service/classes.repository';
+import { ClassData } from '@/service/classes.repository';
 
 export default function ResourcesScreen() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('classes');
+  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch classes when component mounts
+  useEffect(() => {
+    fetchClasses();
+  }, []);
+
+  const fetchClasses = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setError('User not logged in');
+        console.log('No current user');
+        return;
+      }
+
+      console.log('Current user UID:', currentUser.uid);
+
+      // Fetch classes for the current student
+      const studentClasses = await getClassesByStudent(currentUser.uid);
+      console.log('Fetched classes:', studentClasses);
+      setClasses(studentClasses);
+    } catch (err) {
+      console.error('Error fetching classes:', err);
+      setError('Failed to load classes');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStudentCount = (studentIds: any) => {
+    if (Array.isArray(studentIds)) {
+      return studentIds.length;
+    }
+    return 0;
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>RESOURCES</Text>
-        <Ionicons name="search" size={24} color="#146C43" />
+        <Text style={styles.headerTitle}>CLASSES & RESOURCES</Text>
       </View>
 
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
-        <TextInput 
-          style={styles.searchInput} 
-          placeholder="Search resources..." 
-          placeholderTextColor="#888"
-        />
+      {/* Tab Navigation */}
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'classes' && styles.activeTab]}
+          onPress={() => setActiveTab('classes')}
+        >
+          <Text style={[styles.tabText, activeTab === 'classes' && styles.activeTabText]}>Classes</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tab, activeTab === 'resources' && styles.activeTab]}
+          onPress={() => setActiveTab('resources')}
+        >
+          <Text style={[styles.tabText, activeTab === 'resources' && styles.activeTabText]}>Resources</Text>
+        </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.sectionTitle}>SUBJECTS</Text>
+      {/* Classes Tab */}
+      {activeTab === 'classes' && (
+        <ScrollView contentContainerStyle={styles.content}>
+          <Text style={styles.sectionTitle}>MY CLASSES</Text>
+
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#146C43" />
+              <Text style={styles.loadingText}>Loading classes...</Text>
+            </View>
+          )}
+
+          {error && (
+            <View style={styles.errorContainer}>
+              <Ionicons name="alert-circle-outline" size={40} color="#D32F2F" />
+              <Text style={styles.errorText}>{error}</Text>
+              <TouchableOpacity style={styles.retryButton} onPress={fetchClasses}>
+                <Text style={styles.retryButtonText}>Retry</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {!loading && !error && classes.length === 0 && (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="layers-outline" size={40} color="#888" />
+              <Text style={styles.emptyText}>No classes yet</Text>
+            </View>
+          )}
+
+          {!loading && !error && classes.length > 0 && (
+            <View style={styles.classesList}>
+              {classes.map((classItem) => (
+                <TouchableOpacity
+                  key={classItem.id}
+                  style={styles.classCard}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/assessment/class-assessments',
+                      params: {
+                        classId: classItem.id,
+                        className: classItem.className,
+                      },
+                    })
+                  }
+                >
+                  <View style={styles.classCardHeader}>
+                    <Text style={styles.className}>{classItem.className}</Text>
+                    <Text style={styles.classTeacher}>Grade {classItem.gradeLevel}</Text>
+                  </View>
+                  <View style={styles.classCardFooter}>
+                    <View style={styles.classInfo}>
+                      <Ionicons name="book-outline" size={16} color="#146C43" />
+                      <Text style={styles.classInfoText}>{classItem.subject}</Text>
+                    </View>
+                    <View style={styles.classInfo}>
+                      <Ionicons name="people-outline" size={16} color="#146C43" />
+                      <Text style={styles.classInfoText}>{getStudentCount(classItem.studentIds)} students</Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </ScrollView>
+      )}
+
+      {/* Resources Tab */}
+      {activeTab === 'resources' && (
+        <>
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search resources..."
+              placeholderTextColor="#888"
+            />
+          </View>
+
+          <ScrollView contentContainerStyle={styles.content}>
+            <Text style={styles.sectionTitle}>SUBJECTS</Text>
 
         <View style={styles.gridContainer}>
           {/* Science Card */}
@@ -53,7 +185,9 @@ export default function ResourcesScreen() {
             <Text style={[styles.cardSubtitle, { color: '#146C43' }]}>6 resources</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
+          </ScrollView>
+        </>
+      )}
     </SafeAreaView>
   );
 }
@@ -75,6 +209,34 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: 'bold',
     color: '#146C43', // Forest green
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#FFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    marginHorizontal: 20,
+    borderRadius: 10,
+    marginBottom: 15,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    borderRadius: 8,
+  },
+  activeTab: {
+    backgroundColor: '#146C43',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#888',
+  },
+  activeTabText: {
+    color: '#FFF',
   },
   searchContainer: {
     flexDirection: 'row',
@@ -105,6 +267,92 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#146C43',
     marginBottom: 15,
+  },
+  classesList: {
+    gap: 12,
+  },
+  classCard: {
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  classCardHeader: {
+    marginBottom: 12,
+  },
+  className: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#146C43',
+    marginBottom: 4,
+  },
+  classTeacher: {
+    fontSize: 14,
+    color: '#888',
+  },
+  classCardFooter: {
+    flexDirection: 'row',
+    gap: 20,
+  },
+  classInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  classInfoText: {
+    fontSize: 13,
+    color: '#666',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#D32F2F',
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    backgroundColor: '#146C43',
+    borderRadius: 20,
+  },
+  retryButtonText: {
+    color: '#FFF',
+    fontWeight: '600',
+    fontSize: 14,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 60,
+  },
+  emptyText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#888',
   },
   gridContainer: {
     flexDirection: 'row',

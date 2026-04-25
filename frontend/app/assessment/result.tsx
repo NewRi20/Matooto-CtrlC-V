@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
 import { SentimentModal } from '../../components/SentimentModal';
 
 export default function ResultScreen() {
   const router = useRouter();
+  const { assessmentTitle } = useLocalSearchParams<{ assessmentTitle: string }>();
   const [showSentiment, setShowSentiment] = useState(false);
 
   const handleHomePress = () => {
@@ -20,6 +21,11 @@ export default function ResultScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
+        {/* Assessment Title */}
+        <View style={styles.titleSection}>
+          <Text style={styles.assessmentTitle}>{assessmentTitle || 'Assessment'}</Text>
+        </View>
+
         {/* Mascot Header */}
         <View style={styles.mascotArea}>
           <View style={styles.confettiBg}>
@@ -92,6 +98,16 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     alignItems: 'center',
+  },
+  titleSection: {
+    marginBottom: 20,
+    alignItems: 'center',
+  },
+  assessmentTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#146C43',
+    textAlign: 'center',
   },
   mascotArea: {
     alignItems: 'center',

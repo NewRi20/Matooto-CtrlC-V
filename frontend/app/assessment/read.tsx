@@ -1,12 +1,51 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Modal } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+
+interface AssessmentQuestion {
+  question: string;
+  choices: string[];
+  correctChoiceIndex: number;
+}
 
 export default function ReadScreen() {
   const router = useRouter();
-  const [timeLeft, setTimeLeft] = useState(15 * 60); // 15 minutes
+  const {
+    assessmentId,
+    assessmentTitle,
+    timeLimitMinutes,
+    story: storyParam,
+    questionsJson
+  } = useLocalSearchParams<{
+    assessmentId: string;
+    assessmentTitle: string;
+    timeLimitMinutes: string;
+    story: string;
+    questionsJson: string;
+  }>();
+
+  const [timeLeft, setTimeLeft] = useState((parseInt(timeLimitMinutes) || 15) * 60);
   const [selectedWord, setSelectedWord] = useState<string | null>(null);
+  const [storyChunks, setStoryChunks] = useState<Array<{text: string, isWord: boolean}>>([]);
+  const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
+
+  // Parse the story and questions
+  useEffect(() => {
+    if (storyParam && questionsJson) {
+      try {
+        const parsedQuestions = JSON.parse(questionsJson);
+        setQuestions(parsedQuestions);
+
+        // Display the story as-is
+        setStoryChunks([
+          { text: storyParam, isWord: false }
+        ]);
+      } catch (err) {
+        console.error('Error parsing assessment data:', err);
+      }
+    }
+  }, [storyParam, questionsJson]);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -21,25 +60,6 @@ export default function ReadScreen() {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  const storyChunks = [
-    { text: "Once upon a time, in a lush tropical forest, there lived a brave ", isWord: false },
-    { text: "cockatoo", isWord: true },
-    { text: " named Matty. Matty had bright green feathers and a golden yellow crest that ", isWord: false },
-    { text: "shimmered", isWord: true },
-    { text: " in the sunlight. One day, a great storm ", isWord: false },
-    { text: "threatened", isWord: true },
-    { text: " the forest. The animals were scared, and the wind howled loudly. Matty knew he had to help. He spread his wings wide and flew high above the trees to warn everyone. With ", isWord: false },
-    { text: "courage", isWord: true },
-    { text: " and kindness, Matty helped all the animals find shelter. After the storm passed, the forest was safe again, and everyone cheered for their brave hero, Matty the cockatoo.", isWord: false }
-  ];
-
-  const dictionary: Record<string, string> = {
-    "cockatoo": "a type of parrot with a curved beak and a crest of feathers on its head, usually white or brightly colored.",
-    "shimmered": "shone with a soft, slightly wavering light.",
-    "threatened": "stated one's intention to take hostile action against someone in retribution.",
-    "courage": "the ability to do something that frightens one; bravery."
-  };
-
   const handleWordTap = (word: string) => {
     setSelectedWord(word);
   };
@@ -51,7 +71,7 @@ export default function ReadScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={28} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.stepText}>Step 1 of 3</Text>
+        <Text style={styles.stepText}>Step 1 of 2</Text>
         <View style={styles.timerContainer}>
           <Ionicons name="time-outline" size={20} color="#146C43" />
           <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
@@ -64,15 +84,15 @@ export default function ReadScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <Text style={styles.storyTitle}>THE BRAVE COCKATOO</Text>
-        
+        <Text style={styles.storyTitle}>{assessmentTitle?.toUpperCase() || 'ASSESSMENT'}</Text>
+
         <Text style={styles.storyText}>
           {storyChunks.map((chunk, index) => {
             if (chunk.isWord) {
               return (
-                <Text 
-                  key={index} 
-                  style={styles.clickableWord} 
+                <Text
+                  key={index}
+                  style={styles.clickableWord}
                   onPress={() => handleWordTap(chunk.text)}
                 >
                   {chunk.text}
@@ -83,31 +103,38 @@ export default function ReadScreen() {
           })}
         </Text>
 
-        <Text style={styles.helperText}>Tap any word to see its definition</Text>
+        <Text style={styles.helperText}>Read the passage carefully</Text>
 
-        {/* Dictionary Popup */}
+        {/* Selected Word Popup */}
         {selectedWord && (
           <View style={styles.dictionaryPopup}>
             <View style={styles.dictHeader}>
               <Text style={styles.dictWord}>{selectedWord}</Text>
               <TouchableOpacity onPress={() => setSelectedWord(null)}>
-                <Ionicons name="volume-high-outline" size={24} color="#146C43" />
+                <Ionicons name="close" size={24} color="#146C43" />
               </TouchableOpacity>
             </View>
-            <Text style={styles.dictPhonetic}>/ ,kɒkə'tuː /</Text>
-            <View style={styles.dictDivider} />
-            <Text style={styles.dictDefinition}>{dictionary[selectedWord]}</Text>
+            <Text style={styles.dictDefinition}>Selected: {selectedWord}</Text>
           </View>
         )}
       </ScrollView>
 
       {/* Next Button */}
       <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.nextButton} 
-          onPress={() => router.push('/assessment/quiz')}
+        <TouchableOpacity
+          style={styles.nextButton}
+          onPress={() =>
+            router.push({
+              pathname: '/assessment/quiz',
+              params: {
+                assessmentId,
+                assessmentTitle,
+                questionsJson,
+              }
+            })
+          }
         >
-          <Text style={styles.nextButtonText}>Next (Read for 30s)</Text>
+          <Text style={styles.nextButtonText}>Next (Start Quiz)</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
@@ -202,27 +229,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
-  dictPhonetic: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  dictDivider: {
-    height: 1,
-    backgroundColor: '#E0E0E0',
-    marginVertical: 10,
-  },
   dictDefinition: {
     fontSize: 15,
     color: '#444',
     lineHeight: 22,
+    marginTop: 10,
   },
   footer: {
     padding: 20,
     backgroundColor: '#FFF',
   },
   nextButton: {
-    backgroundColor: '#D3D3D3', // Assuming inactive at first based on image
+    backgroundColor: '#146C43',
     paddingVertical: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -230,6 +248,6 @@ const styles = StyleSheet.create({
   nextButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#888',
+    color: '#FFF',
   },
 });

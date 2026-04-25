@@ -1,88 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { auth, db } from '@/service/firebaseConfig';
-import { getClassesByStudent } from '@/service/classes.repository';
-import { getAssessmentsByClass, AssessmentData } from '@/service/assessments.repository';
-import { doc, getDoc } from 'firebase/firestore';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { getAssessmentsByClass } from '@/service/assessments.repository';
+import { AssessmentData } from '@/service/assessments.repository';
 
-interface AssessmentWithClassInfo extends AssessmentData {
-  className?: string;
-  subject?: string;
-}
-
-export default function AssessmentsScreen() {
+export default function ClassAssessmentsScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('All');
-  const [assessments, setAssessments] = useState<AssessmentWithClassInfo[]>([]);
+  const { classId, className } = useLocalSearchParams<{ classId: string; className: string }>();
+
+  const [assessments, setAssessments] = useState<AssessmentData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('All');
 
   const tabs = ['All', 'Pending', 'Completed'];
 
   useEffect(() => {
-    fetchStudentAssessments();
-  }, []);
-
-  const fetchClassInfo = async (classId: any) => {
-    try {
-      if (!classId) return {};
-
-      // If classId is a DocumentReference, get its ID
-      const id = typeof classId === 'string' ? classId : classId.id;
-      const classDoc = await getDoc(doc(db, 'classes', id));
-
-      if (classDoc.exists()) {
-        const data = classDoc.data();
-        return {
-          className: data.className || 'Unknown Class',
-          subject: data.subject || 'Unknown Subject',
-        };
-      }
-      return {};
-    } catch (err) {
-      console.error('Error fetching class info:', err);
-      return {};
+    if (classId) {
+      fetchAssessments();
     }
-  };
+  }, [classId]);
 
-  const fetchStudentAssessments = async () => {
+  const fetchAssessments = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        setError('User not logged in');
+      if (!classId) {
+        setError('Class ID not found');
         return;
       }
 
-      console.log('Fetching classes for student:', currentUser.uid);
-
-      // Get all classes the student is enrolled in
-      const studentClasses = await getClassesByStudent(currentUser.uid);
-      console.log('Student classes:', studentClasses);
-
-      // Fetch assessments for all classes
-      const allAssessments: AssessmentWithClassInfo[] = [];
-      for (const classItem of studentClasses) {
-        if (classItem.id) {
-          const classAssessments = await getAssessmentsByClass(classItem.id);
-
-          // Enrich assessments with class info
-          for (const assessment of classAssessments) {
-            const classInfo = await fetchClassInfo(assessment.classId);
-            allAssessments.push({
-              ...assessment,
-              ...classInfo,
-            });
-          }
-        }
-      }
-
-      console.log('All assessments with class info:', allAssessments);
-      setAssessments(allAssessments);
+      console.log('Fetching assessments for class:', classId);
+      const classAssessments = await getAssessmentsByClass(classId);
+      console.log('Fetched assessments:', classAssessments);
+      setAssessments(classAssessments);
     } catch (err) {
       console.error('Error fetching assessments:', err);
       setError('Failed to load assessments');
@@ -114,7 +67,7 @@ export default function AssessmentsScreen() {
     }
   };
 
-  const isPending = (scheduledFor: any) => {
+  const isPending = (scheduledFor: any, dueDate: any) => {
     try {
       const now = new Date();
       const scheduledDate = scheduledFor?.toDate ? scheduledFor.toDate() : new Date(scheduledFor);
@@ -124,8 +77,8 @@ export default function AssessmentsScreen() {
     }
   };
 
-  const pendingAssessments = assessments.filter(a => isPending(a.scheduledFor));
-  const completedAssessments = assessments.filter(a => !isPending(a.scheduledFor));
+  const pendingAssessments = assessments.filter(a => isPending(a.scheduledFor, a.dueDate));
+  const completedAssessments = assessments.filter(a => !isPending(a.scheduledFor, a.dueDate));
 
   const displayedAssessments = () => {
     if (activeTab === 'Pending') return pendingAssessments;
@@ -135,9 +88,13 @@ export default function AssessmentsScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ASSESSMENTS</Text>
-        <Ionicons name="search" size={24} color="#146C43" />
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="chevron-back" size={28} color="#146C43" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>{className || 'Assessments'}</Text>
+        <View style={{ width: 28 }} />
       </View>
 
       {/* Tabs */}
@@ -164,7 +121,7 @@ export default function AssessmentsScreen() {
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={40} color="#D32F2F" />
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchStudentAssessments}>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchAssessments}>
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -186,8 +143,7 @@ export default function AssessmentsScreen() {
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardTitle}>{assessment.title}</Text>
                   <View style={styles.tagsContainer}>
-                    <Text style={styles.tagClass}>{assessment.className}</Text>
-                    <Text style={styles.tagSubject}>{assessment.subject}</Text>
+                    <Text style={styles.tagLang}>Assessment</Text>
                     <View style={styles.timeContainer}>
                       <Ionicons name="time-outline" size={14} color="#666" />
                       <Text style={styles.timeText}>{assessment.timeLimitMinutes} min</Text>
@@ -197,21 +153,7 @@ export default function AssessmentsScreen() {
               </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.dueText}>Due: {formatDueDate(assessment.dueDate)}</Text>
-                <TouchableOpacity
-                  style={styles.startButton}
-                  onPress={() =>
-                    router.push({
-                      pathname: '/assessment/read',
-                      params: {
-                        assessmentId: assessment.id,
-                        assessmentTitle: assessment.title,
-                        timeLimitMinutes: assessment.timeLimitMinutes,
-                        story: assessment.english_version?.story || '',
-                        questionsJson: JSON.stringify(assessment.english_version?.questions || []),
-                      },
-                    })
-                  }
-                >
+                <TouchableOpacity style={styles.startButton}>
                   <Text style={styles.startButtonText}>Start</Text>
                 </TouchableOpacity>
               </View>
@@ -226,7 +168,7 @@ export default function AssessmentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF9F6', // Cream background
+    backgroundColor: '#FAF9F6',
   },
   header: {
     flexDirection: 'row',
@@ -238,7 +180,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: 'bold',
-    color: '#146C43', // Forest green
+    color: '#146C43',
   },
   tabContainer: {
     flexDirection: 'row',
@@ -312,27 +254,6 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     fontSize: 12,
     color: '#333',
-    overflow: 'hidden',
-  },
-  tagClass: {
-    backgroundColor: '#E3F2FD',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 5,
-    fontSize: 12,
-    color: '#1976D2',
-    fontWeight: '600',
-    overflow: 'hidden',
-  },
-  tagSubject: {
-    backgroundColor: '#F3E5F5',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 5,
-    fontSize: 12,
-    color: '#7B1FA2',
-    fontWeight: '600',
-    overflow: 'hidden',
   },
   timeContainer: {
     flexDirection: 'row',
@@ -381,7 +302,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
   },
   errorText: {
     marginTop: 12,

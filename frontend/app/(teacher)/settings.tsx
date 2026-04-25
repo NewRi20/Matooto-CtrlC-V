@@ -11,7 +11,7 @@ export default function SettingsScreen() {
         <Text style={styles.text}>Settings</Text>
         <TouchableOpacity 
           style={{ marginTop: 20, padding: 15, backgroundColor: '#FFEBEE', borderRadius: 8 }}
-          onPress={() => router.replace('/login')}
+          onPress={() => router.replace('/(auth)/login')}
         >
           <Text style={{ color: '#D32F2F', fontWeight: 'bold' }}>Log Out</Text>
         </TouchableOpacity>

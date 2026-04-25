@@ -34,7 +34,7 @@ export default function TeacherDashboard() {
               
               {showProfileMenu && (
                 <View style={styles.profileMenu}>
-                  <TouchableOpacity style={styles.menuItem} onPress={() => { setShowProfileMenu(false); router.replace('/login'); }}>
+                  <TouchableOpacity style={styles.menuItem} onPress={() => { setShowProfileMenu(false); router.replace('/(auth)/login'); }}>
                     <Ionicons name="log-out-outline" size={20} color="#D32F2F" />
                     <Text style={styles.menuItemText}>Log Out</Text>
                   </TouchableOpacity>

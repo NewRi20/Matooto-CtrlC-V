@@ -1,0 +1,177 @@
+import {
+  collection,
+  addDoc,
+  doc,
+  updateDoc,
+  arrayUnion,
+  DocumentReference,
+  getDocs,
+  query,
+  where,
+  deleteDoc,
+  arrayRemove,
+} from "firebase/firestore";
+import { db } from "./firebaseConfig";
+
+export interface ClassData {
+  id?: string;
+  className: string;
+  gradeLevel: number;
+  subject: string;
+  teacherId: DocumentReference;
+  studentIds: DocumentReference[];
+}
+
+// creates a new class document in Firestore
+export const createClass = async (classData: ClassData) => {
+  try {
+    const teacherRef = doc(db, "users", classData.teacherId.id);
+
+    const newClassData = {
+      className: classData.className,
+      gradeLevel: classData.gradeLevel,
+      subject: classData.subject,
+      teacherId: teacherRef,
+      studentIds: [],
+    };
+
+    const docRef = await addDoc(collection(db, "classes"), newClassData);
+    console.log("Class created with ID: ", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("Error creating class: ", error);
+    throw error;
+  }
+};
+
+/**
+ * Enrolls multiple students into an existing class at the same time.
+ * @param classId - The ID of the class document
+ * @param studentUids - An array of plain string IDs of the students joining
+ */
+export const enrollStudentsBatch = async (
+  classId: string,
+  studentUids: string[],
+) => {
+  try {
+    if (studentUids.length === 0) {
+      console.log("No students selected to enroll.");
+      return;
+    }
+
+    const classRef = doc(db, "classes", classId);
+
+    const studentRefs = studentUids.map((uid) => doc(db, "users", uid));
+
+    await updateDoc(classRef, {
+      studentIds: arrayUnion(...studentRefs),
+    });
+
+    console.log(
+      `Successfully enrolled ${studentUids.length} students into class ${classId}`,
+    );
+  } catch (error) {
+    console.error("Error in batch enrolling students: ", error);
+    throw error;
+  }
+};
+
+/**
+ * Removes a student from a class.
+ * @param classId - The ID of the class document
+ * @param studentUid - The plain string ID of the student to remove
+ */
+export const removeStudentFromClass = async (classId: string, studentUid: string) => {
+  try {
+    const classRef = doc(db, 'classes', classId);
+
+    const studentRef = doc(db, 'users', studentUid);
+
+    await updateDoc(classRef, {
+      studentIds: arrayRemove(studentRef)
+    });
+
+    console.log(`Student ${studentUid} successfully removed from class ${classId}`);
+  } catch (error) {
+    console.error("Error removing student: ", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all classes taught by a specific teacher.
+ * @param teacherUid - The plain string ID of the teacher
+ */
+export const getClassesByTeacher = async (teacherUid: string) => {
+  try {
+    const teacherRef = doc(db, "users", teacherUid);
+
+    const q = query(
+      collection(db, "classes"),
+      where("teacherId", "==", teacherRef),
+    );
+
+    const querySnapshot = await getDocs(q);
+    const classes: ClassData[] = [];
+
+    querySnapshot.forEach((docSnap) => {
+      classes.push({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<ClassData, "id">),
+      });
+    });
+
+    return classes;
+  } catch (error) {
+    console.error("Error fetching teacher classes: ", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches all classes that a specific student is enrolled in.
+ * @param studentUid - The plain string ID of the student
+ */
+export const getClassesByStudent = async (studentUid: string) => {
+  try {
+    const studentRef = doc(db, 'users', studentUid);
+    
+    const q = query(
+      collection(db, 'classes'), 
+      where('studentIds', 'array-contains', studentRef)
+    );
+
+    const querySnapshot = await getDocs(q);
+    
+    const classes: ClassData[] = [];
+    querySnapshot.forEach((docSnap) => {
+      classes.push({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<ClassData, 'id'>)
+      });
+    });
+
+    return classes;
+  } catch (error) {
+    console.error("Error fetching student classes: ", error);
+    throw error;
+  }
+};
+
+/**
+ * Deletes a class from the database.
+ * @param classId - The ID of the class document to delete
+ */
+export const deleteClass = async (classId: string) => {
+  try {
+    const classRef = doc(db, 'classes', classId);
+    
+    await deleteDoc(classRef);
+    
+    console.log(`Successfully deleted class: ${classId}`);
+  } catch (error) {
+    console.error("Error deleting class: ", error);
+    throw error;
+  }
+};
+

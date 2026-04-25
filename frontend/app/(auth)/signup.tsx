@@ -1,19 +1,59 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, TextInput, ScrollView } from 'react-native';
+import { Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function SignupScreen() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [role, setRole] = useState<'Student' | 'Teacher'>('Student');
   const [classCode, setClassCode] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const { user, initializing, signUpWithEmail } = useAuth();
 
-  const handleGoogleSignup = () => {
+  useEffect(() => {
+    if (!user) {
+      return;
+    }
+
     if (role === 'Teacher') {
       router.replace('/(teacher)' as any);
-    } else {
-      router.replace('/(tabs)');
+      return;
+    }
+
+    router.replace('/(tabs)' as any);
+  }, [role, router, user]);
+
+  const handleSignup = async () => {
+    if (!email || !password) {
+      Alert.alert('Missing information', 'Enter your email and password to continue.');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Password mismatch', 'Make sure both password fields match.');
+      return;
+    }
+
+    try {
+      await signUpWithEmail(email.trim(), password, {
+        role,
+        classCode: role === 'Student' ? classCode : '',
+      });
+
+      if (role === 'Teacher') {
+        router.replace('/(teacher)' as any);
+        return;
+      }
+
+      router.replace('/(tabs)' as any);
+    } catch (error) {
+      Alert.alert('Signup failed', 'Check your details and try again.');
     }
   };
 
@@ -35,6 +75,49 @@ export default function SignupScreen() {
             <Text style={styles.logoText}>Matooto</Text>
             <Text style={styles.taglineText}>Learn. Grow. Soar.</Text>
           </View>
+        </View>
+
+        <View style={styles.inputContainer}>
+          <View style={styles.inputLabelRow}>
+            <Ionicons name="mail" size={20} color="#146C43" />
+            <Text style={styles.inputLabel}>Email</Text>
+          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="you@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <View style={styles.inputLabelRow}>
+            <Ionicons name="lock-closed" size={20} color="#146C43" />
+            <Text style={styles.inputLabel}>Password</Text>
+          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Create a password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <View style={styles.inputLabelRow}>
+            <Ionicons name="lock-closed" size={20} color="#146C43" />
+            <Text style={styles.inputLabel}>Confirm Password</Text>
+          </View>
+          <TextInput
+            style={styles.input}
+            placeholder="Repeat your password"
+            secureTextEntry
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+          />
         </View>
 
         {/* Role Selection */}
@@ -86,14 +169,16 @@ export default function SignupScreen() {
           </Text>
         </TouchableOpacity>
 
-        {/* Google Sign Up Button */}
+        {/* Create Account Button */}
         <TouchableOpacity 
-          style={[styles.googleButton, !agreedToTerms && styles.googleButtonDisabled]} 
-          onPress={handleGoogleSignup}
-          disabled={!agreedToTerms}
+          style={[
+            styles.googleButton,
+            (!agreedToTerms || initializing) && styles.googleButtonDisabled,
+          ]} 
+          onPress={handleSignup}
+          disabled={!agreedToTerms || initializing}
         >
-          <Ionicons name="logo-google" size={24} color="#DB4437" style={styles.googleIcon} />
-          <Text style={styles.googleButtonText}>Sign Up with Google</Text>
+          <Text style={styles.googleButtonText}>Create Account</Text>
         </TouchableOpacity>
 
         {/* Login Link */}

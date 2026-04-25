@@ -3,10 +3,14 @@ import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity } from 'react-na
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function ProfileScreen() {
   const router = useRouter();
+  const { logout } = useAuth();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
     router.replace('/(auth)/login');
   };
 

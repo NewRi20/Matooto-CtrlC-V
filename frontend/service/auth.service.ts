@@ -1,30 +1,65 @@
-import { doc, getDoc,serverTimestamp,  setDoc } from "firebase/firestore";
-import { User } from "firebase/auth";
-import { db } from "./firebaseConfig";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+  User,
+} from 'firebase/auth';
+import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+
+import { auth, db } from './firebaseConfig';
+
+type SaveUserProfile = {
+  role?: string;
+  classCode?: string;
+};
 
 // saves authenticated user to Firestore if they don't already exist
-export const saveUserToFirestore = async (authUser: User) => {
+export const saveUserToFirestore = async (
+  authUser: User,
+  profile?: SaveUserProfile
+) => {
   if (!authUser) return;
 
-  const userRef = doc(db, "users", authUser.uid);
+  const userRef = doc(db, 'users', authUser.uid);
 
   try {
-    const userSnap = await getDoc(userRef);
-
-    if (!userSnap.exists()) {
-      await setDoc(userRef, {
+    await setDoc(
+      userRef,
+      {
         email: authUser.email,
         fullName: authUser.displayName,
-        role: "", 
+        role: profile?.role ?? '',
+        classCode: profile?.classCode ?? '',
         createdAt: serverTimestamp(),
-        onboarding: false
-      });
-      console.log("New user successfully saved to Firestore!");
-    } else {
-      console.log("User already exists in Firestore. No action needed.");
-    }
+        onboarding: false,
+      },
+      { merge: true }
+    );
+
+    console.log('User profile saved to Firestore.');
   } catch (error) {
-    console.error("Error saving user to Firestore: ", error);
-    throw error; 
+    console.error('Error saving user to Firestore: ', error);
+    throw error;
   }
+};
+
+export const signInWithEmail = async (email: string, password: string) => {
+  const result = await signInWithEmailAndPassword(auth, email, password);
+
+  await saveUserToFirestore(result.user);
+  return result.user;
+};
+
+export const signUpWithEmail = async (
+  email: string,
+  password: string,
+  profile?: SaveUserProfile
+) => {
+  const result = await createUserWithEmailAndPassword(auth, email, password);
+
+  const displayName = email.split('@')[0] || email;
+  await updateProfile(result.user, { displayName });
+
+  await saveUserToFirestore(result.user, profile);
+  return result.user;
 };

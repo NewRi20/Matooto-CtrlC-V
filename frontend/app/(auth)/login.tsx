@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
+import { getUserProfile } from '@/service/auth.service';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -11,11 +12,29 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const { user, initializing, signInWithEmail } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      router.replace('/(tabs)' as any);
+  const routeByProfile = async (uid: string) => {
+    const profile = await getUserProfile(uid);
+
+    if (!profile.onboarding) {
+      router.replace('/(onboarding)/welcome' as any);
+      return;
     }
-  }, [router, user]);
+
+    if (profile.role === 'Teacher') {
+      router.replace('/(teacher)' as any);
+      return;
+    }
+
+    router.replace('/(tabs)' as any);
+  };
+
+  useEffect(() => {
+    if (initializing || !user) {
+      return;
+    }
+
+    void routeByProfile(user.uid);
+  }, [initializing, router, user]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -24,7 +43,8 @@ export default function LoginScreen() {
     }
 
     try {
-      await signInWithEmail(email.trim(), password);
+      const signedInUser = await signInWithEmail(email.trim(), password);
+      await routeByProfile(signedInUser.uid);
     } catch (error) {
       Alert.alert('Login failed', 'Check your email/password and try again.');
     }

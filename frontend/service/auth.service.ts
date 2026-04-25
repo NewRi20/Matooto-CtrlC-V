@@ -1,16 +1,20 @@
 import {
   createUserWithEmailAndPassword,
+  getAuth,
+  getIdToken,
+  getAdditionalUserInfo,
+  onAuthStateChanged,
+  sendEmailVerification,
   signInWithEmailAndPassword,
   updateProfile,
   User,
 } from 'firebase/auth';
-import { doc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
 
 import { auth, db } from './firebaseConfig';
 
 type SaveUserProfile = {
   role?: string;
-  classCode?: string;
 };
 
 // saves authenticated user to Firestore if they don't already exist
@@ -23,16 +27,28 @@ export const saveUserToFirestore = async (
   const userRef = doc(db, 'users', authUser.uid);
 
   try {
+    const userSnap = await getDoc(userRef);
+    const existingData = userSnap.exists() ? userSnap.data() : {};
+
+    const userData: Record<string, unknown> = {
+      email: authUser.email,
+      fullName: authUser.displayName,
+      createdAt: serverTimestamp(),
+    };
+
+    if (profile?.role !== undefined) {
+      userData.role = profile.role;
+    } else if (!userSnap.exists() && existingData.role === undefined) {
+      userData.role = '';
+    }
+
+    if (profile?.role !== undefined && existingData.onboarding === undefined) {
+      userData.onboarding = false;
+    }
+
     await setDoc(
       userRef,
-      {
-        email: authUser.email,
-        fullName: authUser.displayName,
-        role: profile?.role ?? '',
-        classCode: profile?.classCode ?? '',
-        createdAt: serverTimestamp(),
-        onboarding: false,
-      },
+      userData,
       { merge: true }
     );
 
@@ -41,6 +57,25 @@ export const saveUserToFirestore = async (
     console.error('Error saving user to Firestore: ', error);
     throw error;
   }
+};
+
+export const getUserProfile = async (uid: string) => {
+  const userRef = doc(db, 'users', uid);
+  const userSnap = await getDoc(userRef);
+
+  if (!userSnap.exists()) {
+    return {
+      role: '',
+      onboarding: false,
+    };
+  }
+
+  const data = userSnap.data();
+
+  return {
+    role: data.role === 'Teacher' || data.role === 'Student' ? data.role : '',
+    onboarding: Boolean(data.onboarding),
+  };
 };
 
 export const signInWithEmail = async (email: string, password: string) => {

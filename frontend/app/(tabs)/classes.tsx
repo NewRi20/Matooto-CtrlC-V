@@ -106,42 +106,51 @@ export default function ClassesScreen() {
             <Ionicons name="school-outline" size={48} color="#146C43" />
             <Text style={styles.emptyTitle}>No classes yet</Text>
             <Text style={styles.emptyText}>Join a class using a class code.</Text>
+            <TouchableOpacity
+              style={styles.joinButtonLarge}
+              onPress={() => setJoinModalVisible(true)}
+            >
+              <Ionicons name="add" size={20} color="#FFF" />
+              <Text style={styles.joinButtonLargeText}>Join a Class</Text>
+            </TouchableOpacity>
           </View>
         ) : (
-          classes.map((cls) => (
-            <View
-              key={cls.id}
-              style={styles.classCard}
-            >
-              <View style={styles.cardHeader}>
-                <View style={styles.iconContainer}>
-                  <Ionicons name="school" size={24} color="#146C43" />
-                </View>
-                <View style={styles.classInfo}>
-                  <Text style={styles.className}>{cls.className}</Text>
-                  <Text style={styles.classSubject}>
-                    Grade {cls.gradeLevel} • {cls.subject}
-                  </Text>
-                  <View style={styles.teacherRow}>
-                    <Ionicons name="person" size={12} color="#146C43" />
-                    <Text style={styles.teacherName}>Class Code: {cls.classCode}</Text>
+          <>
+            {classes.map((cls) => (
+              <View
+                key={cls.id}
+                style={styles.classCard}
+              >
+                <View style={styles.cardHeader}>
+                  <View style={styles.iconContainer}>
+                    <Ionicons name="school" size={24} color="#146C43" />
+                  </View>
+                  <View style={styles.classInfo}>
+                    <Text style={styles.className}>{cls.className}</Text>
+                    <Text style={styles.classSubject}>
+                      Grade {cls.gradeLevel} • {cls.subject}
+                    </Text>
+                    <View style={styles.teacherRow}>
+                      <Ionicons name="person" size={12} color="#146C43" />
+                      <Text style={styles.teacherName}>Class Code: {cls.classCode}</Text>
+                    </View>
                   </View>
                 </View>
+                <View style={styles.cardFooter}>
+                  <Ionicons name="chevron-forward" size={20} color="#146C43" />
+                </View>
               </View>
-              <View style={styles.cardFooter}>
-                <Ionicons name="chevron-forward" size={20} color="#146C43" />
-              </View>
-            </View>
-          ))
+            ))}
+            <TouchableOpacity
+              style={styles.joinButtonFooter}
+              onPress={() => setJoinModalVisible(true)}
+            >
+              <Ionicons name="add" size={20} color="#FFF" />
+              <Text style={styles.joinButtonLargeText}>Join Another Class</Text>
+            </TouchableOpacity>
+          </>
         )}
       </ScrollView>
-
-      <TouchableOpacity
-        style={styles.fab}
-        onPress={() => setJoinModalVisible(true)}
-      >
-        <Ionicons name="add" size={24} color="#FFF" />
-      </TouchableOpacity>
 
       {/* Join Class Modal */}
       <Modal
@@ -228,22 +237,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#146C43',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#146C43',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
   },
   joinButton: {
     flexDirection: 'row',

@@ -3,9 +3,18 @@ import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Ima
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function TeacherDashboard() {
   const router = useRouter();
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const { logout } = useAuth();
+
+  const handleLogout = async () => {
+    setShowProfileMenu(false);
+    await logout();
+    router.replace('/(auth)/login' as any);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -34,7 +43,7 @@ export default function TeacherDashboard() {
               
               {showProfileMenu && (
                 <View style={styles.profileMenu}>
-                  <TouchableOpacity style={styles.menuItem} onPress={() => { setShowProfileMenu(false); router.replace('/(auth)/login'); }}>
+                  <TouchableOpacity style={styles.menuItem} onPress={handleLogout}>
                     <Ionicons name="log-out-outline" size={20} color="#D32F2F" />
                     <Text style={styles.menuItemText}>Log Out</Text>
                   </TouchableOpacity>

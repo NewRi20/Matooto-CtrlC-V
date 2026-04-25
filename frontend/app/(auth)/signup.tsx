@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
+import { Image } from 'expo-image';
 
 export default function SignupScreen() {
   const router = useRouter();
@@ -46,20 +47,19 @@ export default function SignupScreen() {
         </View>
 
         <View style={styles.logoContainer}>
-          <Ionicons name="happy" size={40} color="#146C43" />
-          <View style={{ marginLeft: 10 }}>
-            <Text style={styles.logoText}>Matooto</Text>
-            <Text style={styles.taglineText}>Learn. Grow. Soar.</Text>
+          <Image source={require('@/assets/images/mascot_like.svg')} style={{ width: 100, height: 100 }} contentFit="contain" />
+          <View style={{ marginLeft: 15 }}>
+            <Image source={require('@/assets/images/Logo.svg')} style={{ width: 180, height: 60 }} contentFit="contain" />
           </View>
         </View>
 
-        <View style={styles.inputContainer}>
+        <View style={styles.fieldGroup}>
           <View style={styles.inputLabelRow}>
             <Ionicons name="mail" size={20} color="#146C43" />
             <Text style={styles.inputLabel}>Email</Text>
           </View>
           <TextInput
-            style={styles.input}
+            style={styles.inputBox}
             placeholder="you@example.com"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -68,13 +68,13 @@ export default function SignupScreen() {
           />
         </View>
 
-        <View style={styles.inputContainer}>
+        <View style={styles.fieldGroup}>
           <View style={styles.inputLabelRow}>
             <Ionicons name="lock-closed" size={20} color="#146C43" />
             <Text style={styles.inputLabel}>Password</Text>
           </View>
           <TextInput
-            style={styles.input}
+            style={styles.inputBox}
             placeholder="Create a password"
             secureTextEntry
             value={password}
@@ -82,13 +82,13 @@ export default function SignupScreen() {
           />
         </View>
 
-        <View style={styles.inputContainer}>
+        <View style={styles.fieldGroup}>
           <View style={styles.inputLabelRow}>
             <Ionicons name="lock-closed" size={20} color="#146C43" />
             <Text style={styles.inputLabel}>Confirm Password</Text>
           </View>
           <TextInput
-            style={styles.input}
+            style={styles.inputBox}
             placeholder="Repeat your password"
             secureTextEntry
             value={confirmPassword}
@@ -98,26 +98,25 @@ export default function SignupScreen() {
 
         {/* Terms Checkbox */}
         <TouchableOpacity style={styles.checkboxContainer} onPress={() => setAgreedToTerms(!agreedToTerms)}>
-          <Ionicons 
-            name={agreedToTerms ? "checkbox" : "square-outline"} 
-            size={24} 
-            color="#146C43" 
+          <Ionicons
+            name={agreedToTerms ? "checkbox" : "square-outline"}
+            size={24}
+            color="#146C43"
           />
           <Text style={styles.checkboxText}>
             I agree to the <Text style={styles.linkText}>Terms of Service</Text> and <Text style={styles.linkText}>Privacy Policy</Text>
           </Text>
         </TouchableOpacity>
 
-        {/* Create Account Button */}
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
-            styles.googleButton,
-            (!agreedToTerms || initializing) && styles.googleButtonDisabled,
-          ]} 
+            styles.primaryButton,
+            (!agreedToTerms || initializing) && styles.buttonDisabled,
+          ]}
           onPress={handleSignup}
           disabled={!agreedToTerms || initializing}
         >
-          <Text style={styles.googleButtonText}>Create Account</Text>
+          <Text style={styles.primaryButtonText}>Create Account</Text>
         </TouchableOpacity>
 
         {/* Login Link */}
@@ -212,28 +211,29 @@ const styles = StyleSheet.create({
     color: '#146C43',
     fontWeight: 'bold',
   },
-  inputContainer: {
-    borderWidth: 1,
-    borderColor: '#DDD',
-    borderRadius: 10,
-    padding: 15,
+  fieldGroup: {
     marginBottom: 20,
   },
   inputLabelRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   inputLabel: {
     marginLeft: 8,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: '#333',
-    fontSize: 16,
+    fontSize: 14,
   },
-  input: {
+  inputBox: {
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFF',
     fontSize: 15,
     color: '#333',
-    paddingVertical: 5,
   },
   checkboxContainer: {
     flexDirection: 'row',
@@ -251,32 +251,27 @@ const styles = StyleSheet.create({
     color: '#146C43',
     fontWeight: 'bold',
   },
-  googleButton: {
+  primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#DDD',
+    backgroundColor: '#146C43',
     paddingVertical: 15,
     borderRadius: 12,
     marginBottom: 40,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
   },
-  googleButtonDisabled: {
+  buttonDisabled: {
     opacity: 0.5,
   },
-  googleIcon: {
-    marginRight: 10,
-  },
-  googleButtonText: {
+  primaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#FFF',
   },
   loginContainer: {
     flexDirection: 'row',

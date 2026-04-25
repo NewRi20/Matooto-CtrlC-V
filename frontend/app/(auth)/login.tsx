@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
+import { getUserProfile } from '@/service/auth.service';
+import { Image } from 'expo-image';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -11,11 +13,29 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const { user, initializing, signInWithEmail } = useAuth();
 
-  useEffect(() => {
-    if (user) {
-      router.replace('/(tabs)' as any);
+  const routeByProfile = async (uid: string) => {
+    const profile = await getUserProfile(uid);
+
+    if (!profile.onboarding) {
+      router.replace('/(onboarding)/welcome' as any);
+      return;
     }
-  }, [router, user]);
+
+    if (profile.role === 'Teacher') {
+      router.replace('/(teacher)' as any);
+      return;
+    }
+
+    router.replace('/(tabs)' as any);
+  };
+
+  useEffect(() => {
+    if (initializing || !user) {
+      return;
+    }
+
+    void routeByProfile(user.uid);
+  }, [initializing, router, user]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -24,7 +44,8 @@ export default function LoginScreen() {
     }
 
     try {
-      await signInWithEmail(email.trim(), password);
+      const signedInUser = await signInWithEmail(email.trim(), password);
+      await routeByProfile(signedInUser.uid);
     } catch (error) {
       Alert.alert('Login failed', 'Check your email/password and try again.');
     }
@@ -36,10 +57,9 @@ export default function LoginScreen() {
       <View style={styles.headerContainer}>
         {/* Placeholder for Mascot Image */}
         <View style={styles.mascotPlaceholder}>
-          <Ionicons name="happy" size={80} color="#146C43" />
+          <Image source={require('@/assets/images/mascot_like.svg')} style={{ width: 120, height: 130 }} contentFit="contain" />
         </View>
-        <Text style={styles.logoTitle}>Matooto</Text>
-        <Text style={styles.tagline}>Learn. Grow. Soar.</Text>
+        <Image source={require('@/assets/images/Logo.svg')} style={{ width: 150, height: 50 }} contentFit="contain" />
       </View>
 
       <View style={styles.formContainer}>
@@ -70,11 +90,11 @@ export default function LoginScreen() {
         </View>
 
         <TouchableOpacity
-          style={[styles.loginButton, initializing && styles.googleButtonDisabled]}
+          style={[styles.primaryButton, initializing && styles.buttonDisabled]}
           onPress={handleLogin}
           disabled={initializing}
         >
-          <Text style={styles.googleButtonText}>Sign In</Text>
+          <Text style={styles.primaryButtonText}>Sign In</Text>
         </TouchableOpacity>
 
         {/* Sign Up Link */}
@@ -160,28 +180,27 @@ const styles = StyleSheet.create({
     color: '#333',
     marginBottom: 4,
   },
-  loginButton: {
+  primaryButton: {
     justifyContent: 'center',
-    backgroundColor: '#FFF',
-    borderWidth: 1,
-    borderColor: '#DDD',
+    alignItems: 'center',
+    backgroundColor: '#146C43',
     paddingVertical: 15,
     borderRadius: 12,
     marginBottom: 40,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
     marginTop: 8,
   },
-  googleButtonDisabled: {
+  buttonDisabled: {
     opacity: 0.6,
   },
-  googleButtonText: {
+  primaryButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
+    color: '#FFF',
   },
   signupContainer: {
     flexDirection: 'row',

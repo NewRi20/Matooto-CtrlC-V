@@ -1,13 +1,137 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { auth, db } from '@/service/firebaseConfig';
+import { getClassesByStudent } from '@/service/classes.repository';
+import { getAssessmentsByClass, AssessmentData } from '@/service/assessments.repository';
+import { doc, getDoc } from 'firebase/firestore';
+
+interface AssessmentWithClassInfo extends AssessmentData {
+  className?: string;
+  subject?: string;
+}
 
 export default function AssessmentsScreen() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('All');
+  const [assessments, setAssessments] = useState<AssessmentWithClassInfo[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const tabs = ['All', 'Pending', 'Completed'];
+
+  useEffect(() => {
+    fetchStudentAssessments();
+  }, []);
+
+  const fetchClassInfo = async (classId: any) => {
+    try {
+      if (!classId) return {};
+
+      // If classId is a DocumentReference, get its ID
+      const id = typeof classId === 'string' ? classId : classId.id;
+      const classDoc = await getDoc(doc(db, 'classes', id));
+
+      if (classDoc.exists()) {
+        const data = classDoc.data();
+        return {
+          className: data.className || 'Unknown Class',
+          subject: data.subject || 'Unknown Subject',
+        };
+      }
+      return {};
+    } catch (err) {
+      console.error('Error fetching class info:', err);
+      return {};
+    }
+  };
+
+  const fetchStudentAssessments = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const currentUser = auth.currentUser;
+      if (!currentUser) {
+        setError('User not logged in');
+        return;
+      }
+
+      console.log('Fetching classes for student:', currentUser.uid);
+
+      // Get all classes the student is enrolled in
+      const studentClasses = await getClassesByStudent(currentUser.uid);
+      console.log('Student classes:', studentClasses);
+
+      // Fetch assessments for all classes
+      const allAssessments: AssessmentWithClassInfo[] = [];
+      for (const classItem of studentClasses) {
+        if (classItem.id) {
+          const classAssessments = await getAssessmentsByClass(classItem.id);
+
+          // Enrich assessments with class info
+          for (const assessment of classAssessments) {
+            const classInfo = await fetchClassInfo(assessment.classId);
+            allAssessments.push({
+              ...assessment,
+              ...classInfo,
+            });
+          }
+        }
+      }
+
+      console.log('All assessments with class info:', allAssessments);
+      setAssessments(allAssessments);
+    } catch (err) {
+      console.error('Error fetching assessments:', err);
+      setError('Failed to load assessments');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDueDate = (dueDate: any) => {
+    if (!dueDate) return 'No due date';
+    try {
+      const date = dueDate.toDate ? dueDate.toDate() : new Date(dueDate);
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+
+      const isToday = date.toDateString() === today.toDateString();
+      const isTomorrow = date.toDateString() === tomorrow.toDateString();
+
+      if (isToday) {
+        return `Today, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+      } else if (isTomorrow) {
+        return 'Tomorrow';
+      } else {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      }
+    } catch {
+      return 'Invalid date';
+    }
+  };
+
+  const isPending = (scheduledFor: any) => {
+    try {
+      const now = new Date();
+      const scheduledDate = scheduledFor?.toDate ? scheduledFor.toDate() : new Date(scheduledFor);
+      return scheduledDate <= now;
+    } catch {
+      return false;
+    }
+  };
+
+  const pendingAssessments = assessments.filter(a => isPending(a.scheduledFor));
+  const completedAssessments = assessments.filter(a => !isPending(a.scheduledFor));
+
+  const displayedAssessments = () => {
+    if (activeTab === 'Pending') return pendingAssessments;
+    if (activeTab === 'Completed') return completedAssessments;
+    return assessments;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -19,8 +143,8 @@ export default function AssessmentsScreen() {
       {/* Tabs */}
       <View style={styles.tabContainer}>
         {tabs.map(tab => (
-          <TouchableOpacity 
-            key={tab} 
+          <TouchableOpacity
+            key={tab}
             style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
             onPress={() => setActiveTab(tab)}
           >
@@ -29,120 +153,72 @@ export default function AssessmentsScreen() {
         ))}
       </View>
 
-      <ScrollView contentContainerStyle={styles.content}>
-        {/* PENDING SECTION */}
-        {(activeTab === 'All' || activeTab === 'Pending') && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>PENDING</Text>
-            
-            {/* Card 1 */}
-            <View style={styles.card}>
+      {loading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#146C43" />
+          <Text style={styles.loadingText}>Loading assessments...</Text>
+        </View>
+      )}
+
+      {error && (
+        <View style={styles.errorContainer}>
+          <Ionicons name="alert-circle-outline" size={40} color="#D32F2F" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryButton} onPress={fetchStudentAssessments}>
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {!loading && !error && displayedAssessments().length === 0 && (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="layers-outline" size={40} color="#888" />
+          <Text style={styles.emptyText}>No assessments yet</Text>
+        </View>
+      )}
+
+      {!loading && !error && displayedAssessments().length > 0 && (
+        <ScrollView contentContainerStyle={styles.content}>
+          {displayedAssessments().map((assessment) => (
+            <View key={assessment.id} style={styles.card}>
               <View style={styles.cardHeader}>
                 <Ionicons name="clipboard" size={40} color="#146C43" style={styles.cardIcon} />
                 <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>The Brave Cockatoo</Text>
+                  <Text style={styles.cardTitle}>{assessment.title}</Text>
                   <View style={styles.tagsContainer}>
-                    <Text style={styles.tagLang}>English</Text>
-                    <Text style={styles.tagDiffMedium}>Medium</Text>
+                    <Text style={styles.tagClass}>{assessment.className}</Text>
+                    <Text style={styles.tagSubject}>{assessment.subject}</Text>
                     <View style={styles.timeContainer}>
                       <Ionicons name="time-outline" size={14} color="#666" />
-                      <Text style={styles.timeText}>15 min</Text>
+                      <Text style={styles.timeText}>{assessment.timeLimitMinutes} min</Text>
                     </View>
                   </View>
                 </View>
               </View>
               <View style={styles.cardFooter}>
-                <Text style={styles.dueText}>Due: Today, 3:00 PM</Text>
-                <TouchableOpacity 
+                <Text style={styles.dueText}>Due: {formatDueDate(assessment.dueDate)}</Text>
+                <TouchableOpacity
                   style={styles.startButton}
-                  onPress={() => router.push('/assessment/read')}
+                  onPress={() =>
+                    router.push({
+                      pathname: '/assessment/read',
+                      params: {
+                        assessmentId: assessment.id,
+                        assessmentTitle: assessment.title,
+                        timeLimitMinutes: assessment.timeLimitMinutes,
+                        story: assessment.english_version?.story || '',
+                        questionsJson: JSON.stringify(assessment.english_version?.questions || []),
+                      },
+                    })
+                  }
                 >
-                  <Text style={styles.startButtonText}>Start Assessment</Text>
+                  <Text style={styles.startButtonText}>Start</Text>
                 </TouchableOpacity>
               </View>
             </View>
-
-            {/* Card 2 */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Ionicons name="clipboard" size={40} color="#146C43" style={styles.cardIcon} />
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>Ocean Mystery</Text>
-                  <View style={styles.tagsContainer}>
-                    <Text style={styles.tagLang}>Tagalog</Text>
-                    <Text style={styles.tagDiffEasy}>Easy</Text>
-                    <View style={styles.timeContainer}>
-                      <Ionicons name="time-outline" size={14} color="#666" />
-                      <Text style={styles.timeText}>10 min</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.cardFooter}>
-                <Text style={styles.dueTextNormal}>Due: Tomorrow</Text>
-                <TouchableOpacity style={styles.startButton}>
-                  <Text style={styles.startButtonText}>Start Assessment</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
-
-        {/* COMPLETED SECTION */}
-        {(activeTab === 'All' || activeTab === 'Completed') && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>COMPLETED</Text>
-            
-            {/* Card 3 */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Ionicons name="clipboard" size={40} color="#146C43" style={styles.cardIcon} />
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>Forest Adventure</Text>
-                  <View style={styles.tagsContainer}>
-                    <Text style={styles.tagScoreYellow}>75%</Text>
-                    <Text style={styles.tagLang}>English</Text>
-                    <View style={styles.completedBadge}>
-                      <Ionicons name="checkmark-circle" size={14} color="#146C43" />
-                      <Text style={styles.completedText}>Completed</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.cardFooterCompleted}>
-                <TouchableOpacity style={styles.viewResultsButton}>
-                  <Text style={styles.viewResultsText}>View Results</Text>
-                  <Ionicons name="chevron-forward" size={16} color="#146C43" />
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* Card 4 */}
-            <View style={styles.card}>
-              <View style={styles.cardHeader}>
-                <Ionicons name="clipboard" size={40} color="#146C43" style={styles.cardIcon} />
-                <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>The River Journey</Text>
-                  <View style={styles.tagsContainer}>
-                    <Text style={styles.tagScoreGreen}>90%</Text>
-                    <Text style={styles.tagLang}>Tagalog</Text>
-                    <View style={styles.completedBadge}>
-                      <Ionicons name="checkmark-circle" size={14} color="#146C43" />
-                      <Text style={styles.completedText}>Completed</Text>
-                    </View>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.cardFooterCompleted}>
-                <TouchableOpacity style={styles.viewResultsButton}>
-                  <Text style={styles.viewResultsText}>View Results</Text>
-                  <Ionicons name="chevron-forward" size={16} color="#146C43" />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        )}
-      </ScrollView>
+          ))}
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 }
@@ -192,15 +268,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
-  },
-  section: {
-    marginBottom: 20,
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#146C43',
-    marginBottom: 10,
+    paddingBottom: 40,
   },
   card: {
     backgroundColor: '#FFF',
@@ -246,24 +314,24 @@ const styles = StyleSheet.create({
     color: '#333',
     overflow: 'hidden',
   },
-  tagDiffMedium: {
-    backgroundColor: '#FFC107',
+  tagClass: {
+    backgroundColor: '#E3F2FD',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 5,
     fontSize: 12,
-    color: '#333',
-    fontWeight: 'bold',
+    color: '#1976D2',
+    fontWeight: '600',
     overflow: 'hidden',
   },
-  tagDiffEasy: {
-    backgroundColor: '#28A745',
+  tagSubject: {
+    backgroundColor: '#F3E5F5',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 5,
     fontSize: 12,
-    color: '#FFF',
-    fontWeight: 'bold',
+    color: '#7B1FA2',
+    fontWeight: '600',
     overflow: 'hidden',
   },
   timeContainer: {
@@ -283,18 +351,7 @@ const styles = StyleSheet.create({
     borderTopColor: '#F0F0F0',
     paddingTop: 15,
   },
-  cardFooterCompleted: {
-    alignItems: 'flex-end',
-    borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
-    paddingTop: 10,
-  },
   dueText: {
-    color: '#D32F2F', // Red for today
-    fontWeight: 'bold',
-    fontSize: 14,
-  },
-  dueTextNormal: {
     color: '#333',
     fontWeight: 'bold',
     fontSize: 14,
@@ -308,49 +365,50 @@ const styles = StyleSheet.create({
   startButtonText: {
     color: '#FFF',
     fontWeight: 'bold',
+    fontSize: 14,
   },
-  tagScoreYellow: {
-    backgroundColor: '#FFC107',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 5,
-    fontSize: 12,
-    color: '#333',
-    fontWeight: 'bold',
-    overflow: 'hidden',
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  tagScoreGreen: {
-    backgroundColor: '#28A745',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 5,
-    fontSize: 12,
+  loadingText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#666',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+  },
+  errorText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#D32F2F',
+    textAlign: 'center',
+  },
+  retryButton: {
+    marginTop: 16,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    backgroundColor: '#146C43',
+    borderRadius: 20,
+  },
+  retryButtonText: {
     color: '#FFF',
-    fontWeight: 'bold',
-    overflow: 'hidden',
+    fontWeight: '600',
+    fontSize: 14,
   },
-  completedBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderColor: '#146C43',
-    borderWidth: 1,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 5,
-  },
-  completedText: {
-    fontSize: 12,
-    color: '#146C43',
-    marginLeft: 4,
-    fontWeight: '500',
-  },
-  viewResultsButton: {
-    flexDirection: 'row',
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
   },
-  viewResultsText: {
-    color: '#146C43',
-    fontWeight: 'bold',
-    marginRight: 4,
+  emptyText: {
+    marginTop: 12,
+    fontSize: 16,
+    color: '#888',
   },
 });

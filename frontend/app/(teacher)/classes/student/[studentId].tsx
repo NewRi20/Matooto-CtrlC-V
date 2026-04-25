@@ -1,17 +1,57 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Alert, View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+
+import { getClassesByStudent, type ClassData } from '@/service/classes.repository';
+import { getUserProfile } from '@/service/auth.service';
 
 export default function StudentProfileScreen() {
   const { studentId } = useLocalSearchParams();
   const router = useRouter();
+  const studentIdValue = useMemo(() => (Array.isArray(studentId) ? studentId[0] : studentId), [studentId]);
+  const [studentName, setStudentName] = useState('Student');
+  const [studentEmail, setStudentEmail] = useState<string | null>(null);
+  const [studentRole, setStudentRole] = useState('');
+  const [studentOnboarding, setStudentOnboarding] = useState(false);
+  const [studentClasses, setStudentClasses] = useState<ClassData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const pastAssessments = [
-    { id: 1, title: 'The Brave Cockatoo', language: 'English', score: '75%', time: '12m 30s', date: 'Apr 20' },
-    { id: 2, title: 'Ang Alamat ng Pinya', language: 'Filipino', score: '85%', time: '10m 15s', date: 'Apr 18' },
-    { id: 3, title: 'Space Explorer', language: 'English', score: '60%', time: '15m 00s', date: 'Apr 15' },
-  ];
+  useEffect(() => {
+    const loadStudent = async () => {
+      if (!studentIdValue) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const profile = await getUserProfile(studentIdValue);
+        setStudentName(profile.fullName || `Student ${studentIdValue}`);
+        setStudentEmail(profile.email ?? null);
+        setStudentRole(profile.role ?? '');
+        setStudentOnboarding(Boolean(profile.onboarding));
+        const enrolledClasses = await getClassesByStudent(studentIdValue);
+        setStudentClasses(enrolledClasses);
+      } catch (error) {
+        Alert.alert('Unable to load student', 'Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadStudent();
+  }, [studentIdValue]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.centerState}>
+          <ActivityIndicator size="large" color="#146C43" />
+          <Text style={styles.centerStateText}>Loading student profile...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -25,8 +65,9 @@ export default function StudentProfileScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.profileCard}>
           <Ionicons name="person-circle" size={80} color="#146C43" />
-          <Text style={styles.studentName}>Student #{studentId}</Text>
-          <Text style={styles.studentDetails}>Grade 3-A • Science</Text>
+          <Text style={styles.studentName}>{studentName}</Text>
+          <Text style={styles.studentDetails}>{studentEmail ?? 'No email saved'}</Text>
+          <Text style={styles.studentDetails}>{studentRole || 'Role not set'} • {studentOnboarding ? 'Onboarded' : 'Pending onboarding'}</Text>
           
           <View style={styles.statsRow}>
             <View style={styles.statItem}>
@@ -41,34 +82,22 @@ export default function StudentProfileScreen() {
           </View>
         </View>
 
-        <Text style={styles.sectionTitle}>Past Assessments</Text>
+        <Text style={styles.sectionTitle}>Enrolled Classes</Text>
         
-        {pastAssessments.map((item) => (
+        {studentClasses.map((item) => (
           <View key={item.id} style={styles.assessmentCard}>
             <View style={styles.assessmentHeader}>
-              <Text style={styles.assessmentTitle}>{item.title}</Text>
-              <Text style={styles.assessmentDate}>{item.date}</Text>
+              <Text style={styles.assessmentTitle}>{item.className}</Text>
+              <Text style={styles.assessmentDate}>Grade {item.gradeLevel}</Text>
             </View>
             
             <View style={styles.tagsContainer}>
-              <Text style={styles.tagLang}>{item.language}</Text>
-              <Text style={
-                parseInt(item.score) >= 80 ? styles.tagScoreHigh : 
-                parseInt(item.score) >= 70 ? styles.tagScoreMedium : 
-                styles.tagScoreLow
-              }>
-                Score: {item.score}
-              </Text>
+              <Text style={styles.tagLang}>{item.subject}</Text>
+              <Text style={styles.tagScoreHigh}>Teacher linked</Text>
             </View>
             
             <View style={styles.assessmentFooter}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons name="time-outline" size={14} color="#666" />
-                <Text style={styles.timeText}>{item.time}</Text>
-              </View>
-              <TouchableOpacity>
-                <Text style={styles.viewDetailsText}>View Details</Text>
-              </TouchableOpacity>
+              <Text style={styles.timeText}>{item.studentIds?.length ?? 0} students in class</Text>
             </View>
           </View>
         ))}
@@ -82,6 +111,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#EEE' },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#146C43' },
   content: { padding: 20 },
+  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  centerStateText: { marginTop: 12, color: '#666' },
   profileCard: { alignItems: 'center', backgroundColor: '#FFF', borderRadius: 15, padding: 30, marginBottom: 25, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 4, elevation: 2 },
   studentName: { fontSize: 22, fontWeight: 'bold', color: '#333', marginTop: 10, marginBottom: 5 },
   studentDetails: { fontSize: 14, color: '#666', marginBottom: 20 },

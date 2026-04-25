@@ -65,6 +65,8 @@ export const getUserProfile = async (uid: string) => {
 
   if (!userSnap.exists()) {
     return {
+      fullName: '',
+      email: null,
       role: '',
       onboarding: false,
     };
@@ -73,6 +75,8 @@ export const getUserProfile = async (uid: string) => {
   const data = userSnap.data();
 
   return {
+    fullName: typeof data.fullName === 'string' ? data.fullName : '',
+    email: typeof data.email === 'string' ? data.email : null,
     role: data.role === 'Teacher' || data.role === 'Student' ? data.role : '',
     onboarding: Boolean(data.onboarding),
   };

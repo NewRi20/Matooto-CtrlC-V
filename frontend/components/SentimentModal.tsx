@@ -1,6 +1,7 @@
-import React from 'react';
-import { View, Text, StyleSheet, Modal, TouchableOpacity } from 'react-native';
+import React, { useState, useMemo } from 'react';
+import { View, Text, StyleSheet, Modal, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 
 interface SentimentModalProps {
   visible: boolean;
@@ -8,46 +9,74 @@ interface SentimentModalProps {
   onSelect: (sentiment: string) => void;
 }
 
+const moods = [
+  { id: 'happy', label: 'Happy', image: require('@/assets/images/mascot_mood_g.svg') },
+  { id: 'crazy', label: 'Crazy', image: require('@/assets/images/mascot_mood_crazy.svg') },
+  { id: 'gutom', label: 'Gutom', image: require('@/assets/images/mascot_mood_gutom.svg') },
+  { id: 'kabado', label: 'Kabado', image: require('@/assets/images/mascot_mood_kabado.svg') },
+  { id: 'k', label: 'K', image: require('@/assets/images/mascot_mood_k.svg') },
+  { id: 'lutang', label: 'Lutang', image: require('@/assets/images/mascot_mood_lutang.svg') },
+  { id: 'pawis', label: 'Pawis', image: require('@/assets/images/mascot_mood_pawis.svg') },
+  { id: 'sleepy', label: 'Sleepy', image: require('@/assets/images/mascot_mood_sleepy.svg') },
+  { id: 'stress', label: 'Stress', image: require('@/assets/images/mascot_mood_stress.svg') },
+  { id: 'badtrip', label: 'Bad Trip', image: require('@/assets/images/mascot_mood_badtrip.svg') },
+];
+
 export function SentimentModal({ visible, onClose, onSelect }: SentimentModalProps) {
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+
+  const handleMoodSelect = (moodId: string, label: string) => {
+    setSelectedMood(moodId);
+    onSelect(label);
+  };
+
+  // Only render mood options when modal is visible
+  const moodOptions = useMemo(() => {
+    if (!visible) return null;
+    return moods;
+  }, [visible]);
+
   return (
     <Modal visible={visible} transparent animationType="fade">
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           <View style={styles.mascotContainer}>
-            <Ionicons name="happy" size={80} color="#146C43" />
+            <Image 
+              source={require('@/assets/images/mascot_head_shy.svg')} 
+              style={styles.mascotImage}
+              contentFit="contain"
+            />
           </View>
           
           <Text style={styles.title}>How are you feeling today?</Text>
           
-          <View style={styles.optionsContainer}>
-            <TouchableOpacity style={styles.option} onPress={() => onSelect('Happy')}>
-              <View style={[styles.iconCircle, { borderColor: '#8BC34A' }]}>
-                <Ionicons name="happy-outline" size={40} color="#8BC34A" />
-              </View>
-              <Text style={styles.optionText}>Happy</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.option} onPress={() => onSelect('Neutral')}>
-              <View style={[styles.iconCircle, { borderColor: '#FF9800' }]}>
-                <Ionicons name="sad-outline" size={40} color="#FF9800" />
-              </View>
-              <Text style={styles.optionText}>Neutral</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.option} onPress={() => onSelect('Sad')}>
-              <View style={[styles.iconCircle, { borderColor: '#F44336' }]}>
-                <Ionicons name="sad-outline" size={40} color="#F44336" />
-              </View>
-              <Text style={styles.optionText}>Sad</Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity style={styles.option} onPress={() => onSelect('Excellent')}>
-              <View style={[styles.iconCircle, { borderColor: '#4CAF50' }]}>
-                <Ionicons name="star-outline" size={40} color="#4CAF50" />
-              </View>
-              <Text style={styles.optionText}>Excellent</Text>
-            </TouchableOpacity>
-          </View>
+          <ScrollView 
+            horizontal 
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            style={styles.optionsContainer}
+          >
+            {moodOptions?.map((mood) => (
+              <TouchableOpacity 
+                key={mood.id}
+                style={[
+                  styles.option,
+                  selectedMood === mood.id && styles.optionSelected
+                ]}
+                onPress={() => handleMoodSelect(mood.id, mood.label)}
+              >
+                <View style={styles.imageWrapper}>
+                  <Image 
+                    source={mood.image} 
+                    style={styles.moodImage}
+                    contentFit="contain"
+                    cachePolicy="memory-disk"
+                  />
+                </View>
+                <Text style={styles.optionText}>{mood.label}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
           
           <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
             <Text style={styles.cancelText}>Cancel</Text>
@@ -72,11 +101,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   mascotContainer: {
-    marginTop: -70, // Pull mascot up out of the modal
+    marginTop: -70,
     marginBottom: 20,
     backgroundColor: '#FFF',
     borderRadius: 50,
     padding: 5,
+  },
+  mascotImage: {
+    width: 80,
+    height: 80,
   },
   title: {
     fontSize: 22,
@@ -85,31 +118,42 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
   optionsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
     backgroundColor: '#FAF9F6',
-    padding: 15,
     borderRadius: 15,
     marginBottom: 30,
+    paddingVertical: 15,
+  },
+  scrollContent: {
+    paddingHorizontal: 10,
+    gap: 15,
   },
   option: {
     alignItems: 'center',
+    paddingHorizontal: 10,
   },
-  iconCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    borderWidth: 2,
+  optionSelected: {
+    opacity: 0.7,
+  },
+  imageWrapper: {
+    width: 80,
+    height: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF',
     marginBottom: 8,
+    backgroundColor: '#FFF',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#E0E0E0',
+  },
+  moodImage: {
+    width: 70,
+    height: 70,
   },
   optionText: {
     fontSize: 12,
     fontWeight: 'bold',
     color: '#333',
+    textAlign: 'center',
   },
   cancelButton: {
     width: '100%',

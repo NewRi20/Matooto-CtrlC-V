@@ -133,9 +133,16 @@ export default function ResultScreen() {
 
           <TouchableOpacity
             style={styles.primaryButton}
+            onPress={() => router.push('/assessment/attempt_read')}
+          >
+            <Text style={styles.primaryButtonText}>2nd Attempt</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.secondaryButton}
             onPress={() => router.replace('/(tabs)/assessments')}
           >
-            <Text style={styles.primaryButtonText}>Back to Assessments</Text>
+            <Text style={styles.secondaryButtonText}>Back to Assessments</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.homeLink} onPress={handleHomePress}>

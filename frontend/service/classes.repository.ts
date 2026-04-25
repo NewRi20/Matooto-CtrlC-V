@@ -10,6 +10,7 @@ import {
   where,
   deleteDoc,
   arrayRemove,
+  getDoc,
 } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 
@@ -22,24 +23,41 @@ export interface ClassData {
   studentIds: DocumentReference[];
 }
 
+export interface CreateClassInput {
+  className: string;
+  gradeLevel: number;
+  subject: string;
+  teacherUid: string;
+  studentUids?: string[];
+}
+
+export interface StudentProfile {
+  id: string;
+  fullName: string;
+  email: string | null;
+  role?: string;
+  onboarding?: boolean;
+}
+
 // creates a new class document in Firestore
-export const createClass = async (classData: ClassData) => {
+export const createClass = async (classData: CreateClassInput) => {
   try {
-    const teacherRef = doc(db, "users", classData.teacherId.id);
+    const teacherRef = doc(db, 'users', classData.teacherUid);
+    const studentRefs = (classData.studentUids ?? []).map((uid) => doc(db, 'users', uid));
 
     const newClassData = {
       className: classData.className,
       gradeLevel: classData.gradeLevel,
       subject: classData.subject,
       teacherId: teacherRef,
-      studentIds: [],
+      studentIds: studentRefs,
     };
 
-    const docRef = await addDoc(collection(db, "classes"), newClassData);
-    console.log("Class created with ID: ", docRef.id);
+    const docRef = await addDoc(collection(db, 'classes'), newClassData);
+    console.log('Class created with ID: ', docRef.id);
     return docRef.id;
   } catch (error) {
-    console.error("Error creating class: ", error);
+    console.error('Error creating class: ', error);
     throw error;
   }
 };
@@ -171,6 +189,29 @@ export const deleteClass = async (classId: string) => {
     console.log(`Successfully deleted class: ${classId}`);
   } catch (error) {
     console.error("Error deleting class: ", error);
+    throw error;
+  }
+};
+
+/**
+ * Fetches a single class by ID.
+ * @param classId - The ID of the class document to fetch
+ */
+export const getClassById = async (classId: string) => {
+  try {
+    const classRef = doc(db, 'classes', classId);
+    const classSnap = await getDoc(classRef);
+
+    if (!classSnap.exists()) {
+      return null;
+    }
+
+    return {
+      id: classSnap.id,
+      ...(classSnap.data() as Omit<ClassData, 'id'>),
+    };
+  } catch (error) {
+    console.error('Error fetching class by ID: ', error);
     throw error;
   }
 };

@@ -1,25 +1,66 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useAuth } from '@/hooks/useAuth';
+import { getClassesByTeacher, type ClassData } from '@/service/classes.repository';
+
 export default function ClassListScreen() {
   const router = useRouter();
+  const { user } = useAuth();
+  const [classes, setClasses] = useState<ClassData[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const classes = [
-    { id: '3A', name: 'Grade 3-A', subject: 'Science', students: 28 },
-    { id: '3B', name: 'Grade 3-B', subject: 'English', students: 25 },
-    { id: '4A', name: 'Grade 4-A', subject: 'Science', students: 30 },
-  ];
+  useEffect(() => {
+    const loadClasses = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const teacherClasses = await getClassesByTeacher(user.uid);
+        setClasses(teacherClasses);
+      } catch (error) {
+        Alert.alert('Unable to load classes', 'Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    void loadClasses();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.centerState}>
+          <ActivityIndicator size="large" color="#146C43" />
+          <Text style={styles.centerStateText}>Loading your classes...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Classes</Text>
+        <TouchableOpacity style={styles.createButton} onPress={() => router.push('/(teacher)/classes/create' as any)}>
+          <Ionicons name="add" size={18} color="#FFF" />
+          <Text style={styles.createButtonText}>Upload Class</Text>
+        </TouchableOpacity>
       </View>
       
       <ScrollView contentContainerStyle={styles.content}>
-        {classes.map((cls) => (
+        {classes.length === 0 ? (
+          <View style={styles.emptyState}>
+            <Ionicons name="school-outline" size={48} color="#146C43" />
+            <Text style={styles.emptyTitle}>No classes yet</Text>
+            <Text style={styles.emptyText}>Create a class in Firestore to see it here.</Text>
+          </View>
+        ) : classes.map((cls) => (
           <TouchableOpacity 
             key={cls.id} 
             style={styles.classCard}
@@ -30,13 +71,14 @@ export default function ClassListScreen() {
                 <Ionicons name="school" size={24} color="#146C43" />
               </View>
               <View style={styles.classInfo}>
-                <Text style={styles.className}>{cls.name}</Text>
+                <Text style={styles.className}>{cls.className}</Text>
+                <Text style={styles.classSubject}>Grade {cls.gradeLevel}</Text>
                 <Text style={styles.classSubject}>Subject: {cls.subject}</Text>
               </View>
             </View>
             <View style={styles.cardFooter}>
               <Ionicons name="people" size={16} color="#666" />
-              <Text style={styles.studentCount}>{cls.students} Students</Text>
+              <Text style={styles.studentCount}>{cls.studentIds?.length ?? 0} Students</Text>
               <Ionicons name="chevron-forward" size={20} color="#146C43" style={{ marginLeft: 'auto' }} />
             </View>
           </TouchableOpacity>
@@ -49,8 +91,15 @@ export default function ClassListScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAF9F6' },
   header: { padding: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  createButton: { marginTop: 14, flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', backgroundColor: '#146C43', borderRadius: 999, paddingHorizontal: 14, paddingVertical: 10, gap: 6 },
+  createButtonText: { color: '#FFF', fontWeight: '700', fontSize: 13 },
   headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#146C43' },
   content: { padding: 20 },
+  centerState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  centerStateText: { marginTop: 12, color: '#666' },
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
+  emptyTitle: { marginTop: 12, fontSize: 18, fontWeight: '700', color: '#333' },
+  emptyText: { marginTop: 6, color: '#666', textAlign: 'center' },
   classCard: { backgroundColor: '#FFF', borderRadius: 12, padding: 20, marginBottom: 15, borderWidth: 1, borderColor: '#EEE', shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 3, elevation: 2 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
   iconContainer: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center', marginRight: 15 },

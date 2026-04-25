@@ -2,7 +2,7 @@
 // Run this to check if the AI is hallucinating or giving bad outputs.
 // Tests: generateStory (english + mother tongue) and generateQuestions
 
-import { generateStory, generateQuestions, tagComprehensionLevel } from "../services/gemini.service";
+import { generateStory, generateQuestions, tagComprehensionLevel } from "../services/gemini.service.ts";
 
 async function runTests() {
   console.log("===========================================");

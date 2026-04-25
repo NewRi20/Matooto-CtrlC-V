@@ -1,20 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { getAssessmentsByClass } from '@/service/assessments.repository';
-import { AssessmentData } from '@/service/assessments.repository';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { getAssessmentsByClass } from "@/service/assessments.repository";
+import { AssessmentData } from "@/service/assessments.repository";
 
 export default function ClassAssessmentsScreen() {
   const router = useRouter();
-  const { classId, className } = useLocalSearchParams<{ classId: string; className: string }>();
+  const { classId, className } = useLocalSearchParams<{
+    classId: string;
+    className: string;
+  }>();
 
   const [assessments, setAssessments] = useState<AssessmentData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('All');
+  const [activeTab, setActiveTab] = useState("All");
 
-  const tabs = ['All', 'Pending', 'Completed'];
+  const tabs = ["All", "Pending", "Completed"];
 
   useEffect(() => {
     if (classId) {
@@ -28,24 +39,24 @@ export default function ClassAssessmentsScreen() {
       setError(null);
 
       if (!classId) {
-        setError('Class ID not found');
+        setError("Class ID not found");
         return;
       }
 
-      console.log('Fetching assessments for class:', classId);
+      console.log("Fetching assessments for class:", classId);
       const classAssessments = await getAssessmentsByClass(classId);
-      console.log('Fetched assessments:', classAssessments);
+      console.log("Fetched assessments:", classAssessments);
       setAssessments(classAssessments);
     } catch (err) {
-      console.error('Error fetching assessments:', err);
-      setError('Failed to load assessments');
+      console.error("Error fetching assessments:", err);
+      setError("Failed to load assessments");
     } finally {
       setLoading(false);
     }
   };
 
   const formatDueDate = (dueDate: any) => {
-    if (!dueDate) return 'No due date';
+    if (!dueDate) return "No due date";
     try {
       const date = dueDate.toDate ? dueDate.toDate() : new Date(dueDate);
       const today = new Date();
@@ -56,33 +67,42 @@ export default function ClassAssessmentsScreen() {
       const isTomorrow = date.toDateString() === tomorrow.toDateString();
 
       if (isToday) {
-        return `Today, ${date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+        return `Today, ${date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}`;
       } else if (isTomorrow) {
-        return 'Tomorrow';
+        return "Tomorrow";
       } else {
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
       }
     } catch {
-      return 'Invalid date';
+      return "Invalid date";
     }
   };
 
   const isPending = (scheduledFor: any, dueDate: any) => {
     try {
       const now = new Date();
-      const scheduledDate = scheduledFor?.toDate ? scheduledFor.toDate() : new Date(scheduledFor);
+      const scheduledDate = scheduledFor?.toDate
+        ? scheduledFor.toDate()
+        : new Date(scheduledFor);
       return scheduledDate <= now;
     } catch {
       return false;
     }
   };
 
-  const pendingAssessments = assessments.filter(a => isPending(a.scheduledFor, a.dueDate));
-  const completedAssessments = assessments.filter(a => !isPending(a.scheduledFor, a.dueDate));
+  const pendingAssessments = assessments.filter((a) =>
+    isPending(a.scheduledFor, a.dueDate),
+  );
+  const completedAssessments = assessments.filter(
+    (a) => !isPending(a.scheduledFor, a.dueDate),
+  );
 
   const displayedAssessments = () => {
-    if (activeTab === 'Pending') return pendingAssessments;
-    if (activeTab === 'Completed') return completedAssessments;
+    if (activeTab === "Pending") return pendingAssessments;
+    if (activeTab === "Completed") return completedAssessments;
     return assessments;
   };
 
@@ -93,19 +113,29 @@ export default function ClassAssessmentsScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={28} color="#146C43" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{className || 'Assessments'}</Text>
+        <Text style={styles.headerTitle}>{className || "Assessments"}</Text>
         <View style={{ width: 28 }} />
       </View>
 
       {/* Tabs */}
       <View style={styles.tabContainer}>
-        {tabs.map(tab => (
+        {tabs.map((tab) => (
           <TouchableOpacity
             key={tab}
-            style={[styles.tabButton, activeTab === tab && styles.tabButtonActive]}
+            style={[
+              styles.tabButton,
+              activeTab === tab && styles.tabButtonActive,
+            ]}
             onPress={() => setActiveTab(tab)}
           >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>{tab}</Text>
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab && styles.tabTextActive,
+              ]}
+            >
+              {tab}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
@@ -121,7 +151,10 @@ export default function ClassAssessmentsScreen() {
         <View style={styles.errorContainer}>
           <Ionicons name="alert-circle-outline" size={40} color="#D32F2F" />
           <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.retryButton} onPress={fetchAssessments}>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={fetchAssessments}
+          >
             <Text style={styles.retryButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
@@ -139,20 +172,29 @@ export default function ClassAssessmentsScreen() {
           {displayedAssessments().map((assessment) => (
             <View key={assessment.id} style={styles.card}>
               <View style={styles.cardHeader}>
-                <Ionicons name="clipboard" size={40} color="#146C43" style={styles.cardIcon} />
+                <Ionicons
+                  name="clipboard"
+                  size={40}
+                  color="#146C43"
+                  style={styles.cardIcon}
+                />
                 <View style={styles.cardInfo}>
                   <Text style={styles.cardTitle}>{assessment.title}</Text>
                   <View style={styles.tagsContainer}>
                     <Text style={styles.tagLang}>Assessment</Text>
                     <View style={styles.timeContainer}>
                       <Ionicons name="time-outline" size={14} color="#666" />
-                      <Text style={styles.timeText}>{assessment.timeLimitMinutes} min</Text>
+                      <Text style={styles.timeText}>
+                        {assessment.timeLimitMinutes} min
+                      </Text>
                     </View>
                   </View>
                 </View>
               </View>
               <View style={styles.cardFooter}>
-                <Text style={styles.dueText}>Due: {formatDueDate(assessment.dueDate)}</Text>
+                <Text style={styles.dueText}>
+                  Due: {formatDueDate(assessment.dueDate)}
+                </Text>
                 <TouchableOpacity style={styles.startButton}>
                   <Text style={styles.startButtonText}>Start</Text>
                 </TouchableOpacity>
@@ -168,65 +210,65 @@ export default function ClassAssessmentsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF9F6',
+    backgroundColor: "#FAF9F6",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#FAF9F6',
+    backgroundColor: "#FAF9F6",
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#146C43',
+    fontWeight: "bold",
+    color: "#146C43",
   },
   tabContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingHorizontal: 20,
     marginBottom: 15,
   },
   tabButton: {
     flex: 1,
     paddingVertical: 10,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
-    backgroundColor: '#FAF9F6',
+    borderColor: "#E0E0E0",
+    backgroundColor: "#FAF9F6",
     marginHorizontal: 5,
   },
   tabButtonActive: {
-    backgroundColor: '#146C43',
-    borderColor: '#146C43',
+    backgroundColor: "#146C43",
+    borderColor: "#146C43",
   },
   tabText: {
-    fontWeight: '600',
-    color: '#333',
+    fontWeight: "600",
+    color: "#333",
   },
   tabTextActive: {
-    color: '#FFF',
+    color: "#FFF",
   },
   content: {
     padding: 20,
     paddingBottom: 40,
   },
   card: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 15,
     padding: 15,
     marginBottom: 15,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
     borderWidth: 1,
-    borderColor: '#F0F0F0',
+    borderColor: "#F0F0F0",
   },
   cardHeader: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 15,
   },
   cardIcon: {
@@ -237,98 +279,98 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 5,
   },
   tagsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    alignItems: "center",
+    flexWrap: "wrap",
     gap: 8,
   },
   tagLang: {
-    backgroundColor: '#F0F0F0',
+    backgroundColor: "#F0F0F0",
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 5,
     fontSize: 12,
-    color: '#333',
+    color: "#333",
   },
   timeContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   timeText: {
     fontSize: 12,
-    color: '#666',
+    color: "#666",
     marginLeft: 4,
   },
   cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: "#F0F0F0",
     paddingTop: 15,
   },
   dueText: {
-    color: '#333',
-    fontWeight: 'bold',
+    color: "#333",
+    fontWeight: "bold",
     fontSize: 14,
   },
   startButton: {
-    backgroundColor: '#146C43',
+    backgroundColor: "#146C43",
     paddingHorizontal: 15,
     paddingVertical: 8,
     borderRadius: 8,
   },
   startButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+    color: "#FFF",
+    fontWeight: "bold",
     fontSize: 14,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#D32F2F',
-    textAlign: 'center',
+    color: "#D32F2F",
+    textAlign: "center",
   },
   retryButton: {
     marginTop: 16,
     paddingVertical: 10,
     paddingHorizontal: 24,
-    backgroundColor: '#146C43',
+    backgroundColor: "#146C43",
     borderRadius: 20,
   },
   retryButtonText: {
-    color: '#FFF',
-    fontWeight: '600',
+    color: "#FFF",
+    fontWeight: "600",
     fontSize: 14,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   emptyText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#888',
+    color: "#888",
   },
 });

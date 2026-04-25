@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 interface AssessmentQuestion {
   question: string;
@@ -11,11 +18,12 @@ interface AssessmentQuestion {
 
 export default function QuizScreen() {
   const router = useRouter();
-  const { assessmentId, assessmentTitle, questionsJson } = useLocalSearchParams<{
-    assessmentId: string;
-    assessmentTitle: string;
-    questionsJson: string;
-  }>();
+  const { assessmentId, assessmentTitle, questionsJson } =
+    useLocalSearchParams<{
+      assessmentId: string;
+      assessmentTitle: string;
+      questionsJson: string;
+    }>();
 
   const [questions, setQuestions] = useState<AssessmentQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -28,14 +36,14 @@ export default function QuizScreen() {
         const parsed = JSON.parse(questionsJson);
         setQuestions(parsed);
       } catch (err) {
-        console.error('Error parsing questions:', err);
+        console.error("Error parsing questions:", err);
       }
     }
   }, [questionsJson]);
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => (prev > 0 ? prev - 1 : 0));
+      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
     }, 1000);
     return () => clearInterval(timer);
   }, []);
@@ -43,7 +51,7 @@ export default function QuizScreen() {
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
-    return `${m}:${s < 10 ? '0' : ''}${s}`;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -68,11 +76,11 @@ export default function QuizScreen() {
 
   const handleSubmit = () => {
     router.push({
-      pathname: '/assessment/result',
+      pathname: "/assessment/result",
       params: {
         assessmentId,
         assessmentTitle,
-      }
+      },
     });
   };
 
@@ -93,7 +101,9 @@ export default function QuizScreen() {
         <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={28} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.stepText}>Question {currentQuestionIndex + 1} of {questions.length}</Text>
+        <Text style={styles.stepText}>
+          Question {currentQuestionIndex + 1} of {questions.length}
+        </Text>
         <View style={styles.timerContainer}>
           <Ionicons name="time-outline" size={20} color="#146C43" />
           <Text style={styles.timerText}>{formatTime(timeLeft)}</Text>
@@ -105,7 +115,9 @@ export default function QuizScreen() {
         <View
           style={[
             styles.progressBarFill,
-            { width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }
+            {
+              width: `${((currentQuestionIndex + 1) / questions.length) * 100}%`,
+            },
           ]}
         />
       </View>
@@ -119,10 +131,18 @@ export default function QuizScreen() {
             return (
               <TouchableOpacity
                 key={index}
-                style={[styles.optionCard, isSelected && styles.optionCardSelected]}
+                style={[
+                  styles.optionCard,
+                  isSelected && styles.optionCardSelected,
+                ]}
                 onPress={() => setSelectedOption(index)}
               >
-                <Text style={[styles.optionText, isSelected && styles.optionTextSelected]}>
+                <Text
+                  style={[
+                    styles.optionText,
+                    isSelected && styles.optionTextSelected,
+                  ]}
+                >
                   {getLetterForIndex(index)}) {choice}
                 </Text>
                 {isSelected && (
@@ -137,12 +157,26 @@ export default function QuizScreen() {
       {/* Footer Nav */}
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.prevButton, currentQuestionIndex === 0 && styles.prevButtonDisabled]}
+          style={[
+            styles.prevButton,
+            currentQuestionIndex === 0 && styles.prevButtonDisabled,
+          ]}
           onPress={handlePrevious}
           disabled={currentQuestionIndex === 0}
         >
-          <Ionicons name="chevron-back" size={20} color={currentQuestionIndex === 0 ? '#CCC' : '#8D5524'} />
-          <Text style={[styles.prevButtonText, currentQuestionIndex === 0 && styles.prevButtonTextDisabled]}>Previous</Text>
+          <Ionicons
+            name="chevron-back"
+            size={20}
+            color={currentQuestionIndex === 0 ? "#CCC" : "#8D5524"}
+          />
+          <Text
+            style={[
+              styles.prevButtonText,
+              currentQuestionIndex === 0 && styles.prevButtonTextDisabled,
+            ]}
+          >
+            Previous
+          </Text>
         </TouchableOpacity>
 
         {currentQuestionIndex === questions.length - 1 ? (
@@ -151,12 +185,26 @@ export default function QuizScreen() {
           </TouchableOpacity>
         ) : (
           <TouchableOpacity
-            style={[styles.nextButton, selectedOption === null && styles.nextButtonDisabled]}
+            style={[
+              styles.nextButton,
+              selectedOption === null && styles.nextButtonDisabled,
+            ]}
             onPress={handleNext}
             disabled={selectedOption === null}
           >
-            <Text style={[styles.nextButtonText, selectedOption === null && styles.nextButtonTextDisabled]}>Next</Text>
-            <Ionicons name="chevron-forward" size={20} color={selectedOption === null ? '#CCC' : '#FFF'} />
+            <Text
+              style={[
+                styles.nextButtonText,
+                selectedOption === null && styles.nextButtonTextDisabled,
+              ]}
+            >
+              Next
+            </Text>
+            <Ionicons
+              name="chevron-forward"
+              size={20}
+              color={selectedOption === null ? "#CCC" : "#FFF"}
+            />
           </TouchableOpacity>
         )}
       </View>
@@ -167,96 +215,96 @@ export default function QuizScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    borderBottomColor: "#F0F0F0",
   },
   stepText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
   },
   timerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   timerText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#146C43',
+    fontWeight: "bold",
+    color: "#146C43",
     marginLeft: 5,
   },
   progressBarBg: {
     height: 4,
-    backgroundColor: '#E9ECEF',
-    width: '100%',
+    backgroundColor: "#E9ECEF",
+    width: "100%",
   },
   progressBarFill: {
-    height: '100%',
-    backgroundColor: '#146C43',
+    height: "100%",
+    backgroundColor: "#146C43",
   },
   content: {
     padding: 20,
   },
   questionText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 25,
   },
   optionsContainer: {
     gap: 12,
   },
   optionCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 16,
     borderWidth: 2,
-    borderColor: '#E0E0E0',
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    borderColor: "#E0E0E0",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   optionCardSelected: {
-    backgroundColor: '#146C43',
-    borderColor: '#146C43',
+    backgroundColor: "#146C43",
+    borderColor: "#146C43",
   },
   optionText: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     flex: 1,
   },
   optionTextSelected: {
-    color: '#FFF',
-    fontWeight: '600',
+    color: "#FFF",
+    fontWeight: "600",
   },
   footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     padding: 20,
     borderTopWidth: 1,
-    borderTopColor: '#F0F0F0',
+    borderTopColor: "#F0F0F0",
     gap: 12,
   },
   prevButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
@@ -266,47 +314,47 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   prevButtonText: {
-    color: '#8D5524',
-    fontWeight: '600',
+    color: "#8D5524",
+    fontWeight: "600",
     marginLeft: 8,
   },
   prevButtonTextDisabled: {
-    color: '#CCC',
+    color: "#CCC",
   },
   nextButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#146C43',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#146C43",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   nextButtonDisabled: {
-    backgroundColor: '#CCC',
+    backgroundColor: "#CCC",
   },
   nextButtonText: {
-    color: '#FFF',
-    fontWeight: '600',
+    color: "#FFF",
+    fontWeight: "600",
     marginRight: 8,
   },
   nextButtonTextDisabled: {
-    color: '#999',
+    color: "#999",
   },
   submitButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#28A745',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#28A745",
     paddingVertical: 12,
     paddingHorizontal: 16,
     borderRadius: 8,
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
   },
   submitButtonText: {
-    color: '#FFF',
-    fontWeight: 'bold',
+    color: "#FFF",
+    fontWeight: "bold",
     fontSize: 16,
   },
 });

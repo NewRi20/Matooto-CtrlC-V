@@ -1,14 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import { auth } from '@/service/firebaseConfig';
-import { getClassesByStudent } from '@/service/classes.repository';
-import { ClassData } from '@/service/classes.repository';
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  ActivityIndicator,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { auth } from "@/service/firebaseConfig";
+import { getClassesByStudent } from "@/service/classes.repository";
+import { ClassData } from "@/service/classes.repository";
 
 export default function ResourcesScreen() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('classes');
+  const [activeTab, setActiveTab] = useState("classes");
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,20 +34,20 @@ export default function ResourcesScreen() {
 
       const currentUser = auth.currentUser;
       if (!currentUser) {
-        setError('User not logged in');
-        console.log('No current user');
+        setError("User not logged in");
+        console.log("No current user");
         return;
       }
 
-      console.log('Current user UID:', currentUser.uid);
+      console.log("Current user UID:", currentUser.uid);
 
       // Fetch classes for the current student
       const studentClasses = await getClassesByStudent(currentUser.uid);
-      console.log('Fetched classes:', studentClasses);
+      console.log("Fetched classes:", studentClasses);
       setClasses(studentClasses);
     } catch (err) {
-      console.error('Error fetching classes:', err);
-      setError('Failed to load classes');
+      console.error("Error fetching classes:", err);
+      setError("Failed to load classes");
     } finally {
       setLoading(false);
     }
@@ -61,21 +70,35 @@ export default function ResourcesScreen() {
       {/* Tab Navigation */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'classes' && styles.activeTab]}
-          onPress={() => setActiveTab('classes')}
+          style={[styles.tab, activeTab === "classes" && styles.activeTab]}
+          onPress={() => setActiveTab("classes")}
         >
-          <Text style={[styles.tabText, activeTab === 'classes' && styles.activeTabText]}>Classes</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "classes" && styles.activeTabText,
+            ]}
+          >
+            Classes
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tab, activeTab === 'resources' && styles.activeTab]}
-          onPress={() => setActiveTab('resources')}
+          style={[styles.tab, activeTab === "resources" && styles.activeTab]}
+          onPress={() => setActiveTab("resources")}
         >
-          <Text style={[styles.tabText, activeTab === 'resources' && styles.activeTabText]}>Resources</Text>
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "resources" && styles.activeTabText,
+            ]}
+          >
+            Resources
+          </Text>
         </TouchableOpacity>
       </View>
 
       {/* Classes Tab */}
-      {activeTab === 'classes' && (
+      {activeTab === "classes" && (
         <ScrollView contentContainerStyle={styles.content}>
           <Text style={styles.sectionTitle}>MY CLASSES</Text>
 
@@ -90,7 +113,10 @@ export default function ResourcesScreen() {
             <View style={styles.errorContainer}>
               <Ionicons name="alert-circle-outline" size={40} color="#D32F2F" />
               <Text style={styles.errorText}>{error}</Text>
-              <TouchableOpacity style={styles.retryButton} onPress={fetchClasses}>
+              <TouchableOpacity
+                style={styles.retryButton}
+                onPress={fetchClasses}
+              >
                 <Text style={styles.retryButtonText}>Retry</Text>
               </TouchableOpacity>
             </View>
@@ -111,7 +137,7 @@ export default function ResourcesScreen() {
                   style={styles.classCard}
                   onPress={() =>
                     router.push({
-                      pathname: '/assessment/class-assessments',
+                      pathname: "/assessment/class-assessments",
                       params: {
                         classId: classItem.id,
                         className: classItem.className,
@@ -121,16 +147,26 @@ export default function ResourcesScreen() {
                 >
                   <View style={styles.classCardHeader}>
                     <Text style={styles.className}>{classItem.className}</Text>
-                    <Text style={styles.classTeacher}>Grade {classItem.gradeLevel}</Text>
+                    <Text style={styles.classTeacher}>
+                      Grade {classItem.gradeLevel}
+                    </Text>
                   </View>
                   <View style={styles.classCardFooter}>
                     <View style={styles.classInfo}>
                       <Ionicons name="book-outline" size={16} color="#146C43" />
-                      <Text style={styles.classInfoText}>{classItem.subject}</Text>
+                      <Text style={styles.classInfoText}>
+                        {classItem.subject}
+                      </Text>
                     </View>
                     <View style={styles.classInfo}>
-                      <Ionicons name="people-outline" size={16} color="#146C43" />
-                      <Text style={styles.classInfoText}>{getStudentCount(classItem.studentIds)} students</Text>
+                      <Ionicons
+                        name="people-outline"
+                        size={16}
+                        color="#146C43"
+                      />
+                      <Text style={styles.classInfoText}>
+                        {getStudentCount(classItem.studentIds)} students
+                      </Text>
                     </View>
                   </View>
                 </TouchableOpacity>
@@ -141,11 +177,16 @@ export default function ResourcesScreen() {
       )}
 
       {/* Resources Tab */}
-      {activeTab === 'resources' && (
+      {activeTab === "resources" && (
         <>
           {/* Search Bar */}
           <View style={styles.searchContainer}>
-            <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+            <Ionicons
+              name="search"
+              size={20}
+              color="#888"
+              style={styles.searchIcon}
+            />
             <TextInput
               style={styles.searchInput}
               placeholder="Search resources..."
@@ -156,35 +197,76 @@ export default function ResourcesScreen() {
           <ScrollView contentContainerStyle={styles.content}>
             <Text style={styles.sectionTitle}>SUBJECTS</Text>
 
-        <View style={styles.gridContainer}>
-          {/* Science Card */}
-          <TouchableOpacity style={[styles.subjectCard, { backgroundColor: '#8D5524' }]}>
-            <Ionicons name="flask-outline" size={40} color="#FFF" style={styles.cardIcon} />
-            <Text style={styles.cardTitle}>Science</Text>
-            <Text style={styles.cardSubtitle}>10 resources</Text>
-          </TouchableOpacity>
+            <View style={styles.gridContainer}>
+              {/* Science Card */}
+              <TouchableOpacity
+                style={[styles.subjectCard, { backgroundColor: "#8D5524" }]}
+              >
+                <Ionicons
+                  name="flask-outline"
+                  size={40}
+                  color="#FFF"
+                  style={styles.cardIcon}
+                />
+                <Text style={styles.cardTitle}>Science</Text>
+                <Text style={styles.cardSubtitle}>10 resources</Text>
+              </TouchableOpacity>
 
-          {/* Math Card */}
-          <TouchableOpacity style={[styles.subjectCard, { backgroundColor: '#FFB300' }]}>
-            <Ionicons name="calculator-outline" size={40} color="#333" style={styles.cardIcon} />
-            <Text style={[styles.cardTitle, { color: '#333' }]}>Math</Text>
-            <Text style={[styles.cardSubtitle, { color: '#333' }]}>8 resources</Text>
-          </TouchableOpacity>
+              {/* Math Card */}
+              <TouchableOpacity
+                style={[styles.subjectCard, { backgroundColor: "#FFB300" }]}
+              >
+                <Ionicons
+                  name="calculator-outline"
+                  size={40}
+                  color="#333"
+                  style={styles.cardIcon}
+                />
+                <Text style={[styles.cardTitle, { color: "#333" }]}>Math</Text>
+                <Text style={[styles.cardSubtitle, { color: "#333" }]}>
+                  8 resources
+                </Text>
+              </TouchableOpacity>
 
-          {/* English Card */}
-          <TouchableOpacity style={[styles.subjectCard, { backgroundColor: '#146C43' }]}>
-            <Ionicons name="book-outline" size={40} color="#FFF" style={styles.cardIcon} />
-            <Text style={styles.cardTitle}>English</Text>
-            <Text style={styles.cardSubtitle}>12 resources</Text>
-          </TouchableOpacity>
+              {/* English Card */}
+              <TouchableOpacity
+                style={[styles.subjectCard, { backgroundColor: "#146C43" }]}
+              >
+                <Ionicons
+                  name="book-outline"
+                  size={40}
+                  color="#FFF"
+                  style={styles.cardIcon}
+                />
+                <Text style={styles.cardTitle}>English</Text>
+                <Text style={styles.cardSubtitle}>12 resources</Text>
+              </TouchableOpacity>
 
-          {/* Filipino Card */}
-          <TouchableOpacity style={[styles.subjectCard, { backgroundColor: '#E8F5E9', borderWidth: 1, borderColor: '#146C43' }]}>
-            <Ionicons name="language-outline" size={40} color="#146C43" style={styles.cardIcon} />
-            <Text style={[styles.cardTitle, { color: '#146C43' }]}>Filipino</Text>
-            <Text style={[styles.cardSubtitle, { color: '#146C43' }]}>6 resources</Text>
-          </TouchableOpacity>
-        </View>
+              {/* Filipino Card */}
+              <TouchableOpacity
+                style={[
+                  styles.subjectCard,
+                  {
+                    backgroundColor: "#E8F5E9",
+                    borderWidth: 1,
+                    borderColor: "#146C43",
+                  },
+                ]}
+              >
+                <Ionicons
+                  name="language-outline"
+                  size={40}
+                  color="#146C43"
+                  style={styles.cardIcon}
+                />
+                <Text style={[styles.cardTitle, { color: "#146C43" }]}>
+                  Filipino
+                </Text>
+                <Text style={[styles.cardSubtitle, { color: "#146C43" }]}>
+                  6 resources
+                </Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </>
       )}
@@ -195,26 +277,26 @@ export default function ResourcesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF9F6', // Cream background
+    backgroundColor: "#FAF9F6", // Cream background
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
-    backgroundColor: '#FAF9F6',
-    position: 'relative',
+    backgroundColor: "#FAF9F6",
+    position: "relative",
   },
   headerTitle: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#146C43', // Forest green
+    fontWeight: "bold",
+    color: "#146C43", // Forest green
   },
   tabContainer: {
-    flexDirection: 'row',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    backgroundColor: "#FFF",
     borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    borderBottomColor: "#E0E0E0",
     marginHorizontal: 20,
     borderRadius: 10,
     marginBottom: 15,
@@ -224,29 +306,29 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderRadius: 8,
   },
   activeTab: {
-    backgroundColor: '#146C43',
+    backgroundColor: "#146C43",
   },
   tabText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#888',
+    fontWeight: "600",
+    color: "#888",
   },
   activeTabText: {
-    color: '#FFF',
+    color: "#FFF",
   },
   searchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF",
     marginHorizontal: 20,
     borderRadius: 10,
     paddingHorizontal: 15,
     borderWidth: 1,
-    borderColor: '#E0E0E0',
+    borderColor: "#E0E0E0",
     marginBottom: 20,
   },
   searchIcon: {
@@ -256,7 +338,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
-    color: '#333',
+    color: "#333",
   },
   content: {
     paddingHorizontal: 20,
@@ -264,19 +346,19 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#146C43',
+    fontWeight: "bold",
+    color: "#146C43",
     marginBottom: 15,
   },
   classesList: {
     gap: 12,
   },
   classCard: {
-    backgroundColor: '#FFF',
+    backgroundColor: "#FFF",
     borderRadius: 12,
     padding: 16,
     marginBottom: 8,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -287,87 +369,87 @@ const styles = StyleSheet.create({
   },
   className: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#146C43',
+    fontWeight: "bold",
+    color: "#146C43",
     marginBottom: 4,
   },
   classTeacher: {
     fontSize: 14,
-    color: '#888',
+    color: "#888",
   },
   classCardFooter: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 20,
   },
   classInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
   },
   classInfoText: {
     fontSize: 13,
-    color: '#666',
+    color: "#666",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 60,
   },
   loadingText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#666',
+    color: "#666",
   },
   errorContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 60,
   },
   errorText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#D32F2F',
-    textAlign: 'center',
+    color: "#D32F2F",
+    textAlign: "center",
   },
   retryButton: {
     marginTop: 16,
     paddingVertical: 10,
     paddingHorizontal: 24,
-    backgroundColor: '#146C43',
+    backgroundColor: "#146C43",
     borderRadius: 20,
   },
   retryButtonText: {
-    color: '#FFF',
-    fontWeight: '600',
+    color: "#FFF",
+    fontWeight: "600",
     fontSize: 14,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     paddingVertical: 60,
   },
   emptyText: {
     marginTop: 12,
     fontSize: 16,
-    color: '#888',
+    color: "#888",
   },
   gridContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
     gap: 15, // Use gap if supported, otherwise rely on margins
   },
   subjectCard: {
-    width: '47%', // Slightly less than 50% to account for spacing
+    width: "47%", // Slightly less than 50% to account for spacing
     borderRadius: 15,
     padding: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: 15,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -378,13 +460,13 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#FFF',
+    fontWeight: "bold",
+    color: "#FFF",
     marginBottom: 5,
   },
   cardSubtitle: {
     fontSize: 12,
-    color: '#FFF',
+    color: "#FFF",
     opacity: 0.9,
   },
 });

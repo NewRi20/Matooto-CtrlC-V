@@ -1,12 +1,21 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useLocalSearchParams } from 'expo-router';
-import { SentimentModal } from '../../components/SentimentModal';
+import React, { useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { SentimentModal } from "../../components/SentimentModal";
 
 export default function ResultScreen() {
   const router = useRouter();
-  const { assessmentTitle } = useLocalSearchParams<{ assessmentTitle: string }>();
+  const { assessmentTitle } = useLocalSearchParams<{
+    assessmentTitle: string;
+  }>();
   const [showSentiment, setShowSentiment] = useState(false);
 
   const handleHomePress = () => {
@@ -15,7 +24,7 @@ export default function ResultScreen() {
 
   const handleSentimentClose = () => {
     setShowSentiment(false);
-    router.replace('/(tabs)');
+    router.replace("/(tabs)");
   };
 
   return (
@@ -23,7 +32,9 @@ export default function ResultScreen() {
       <ScrollView contentContainerStyle={styles.content}>
         {/* Assessment Title */}
         <View style={styles.titleSection}>
-          <Text style={styles.assessmentTitle}>{assessmentTitle || 'Assessment'}</Text>
+          <Text style={styles.assessmentTitle}>
+            {assessmentTitle || "Assessment"}
+          </Text>
         </View>
 
         {/* Mascot Header */}
@@ -38,13 +49,38 @@ export default function ResultScreen() {
         <View style={styles.scoreCard}>
           <Text style={styles.percentageText}>80%</Text>
           <Text style={styles.scoreSubText}>4 out of 5 Correct</Text>
-          
+
           <View style={styles.starsContainer}>
-            <Ionicons name="star" size={40} color="#FFD700" style={styles.star} />
-            <Ionicons name="star" size={40} color="#FFD700" style={styles.star} />
-            <Ionicons name="star" size={40} color="#FFD700" style={styles.star} />
-            <Ionicons name="star" size={40} color="#FFD700" style={styles.star} />
-            <Ionicons name="star-outline" size={40} color="#FFD700" style={styles.star} />
+            <Ionicons
+              name="star"
+              size={40}
+              color="#FFD700"
+              style={styles.star}
+            />
+            <Ionicons
+              name="star"
+              size={40}
+              color="#FFD700"
+              style={styles.star}
+            />
+            <Ionicons
+              name="star"
+              size={40}
+              color="#FFD700"
+              style={styles.star}
+            />
+            <Ionicons
+              name="star"
+              size={40}
+              color="#FFD700"
+              style={styles.star}
+            />
+            <Ionicons
+              name="star-outline"
+              size={40}
+              color="#FFD700"
+              style={styles.star}
+            />
           </View>
           <Text style={styles.starsEarnedText}>4 Stars Earned!</Text>
         </View>
@@ -52,16 +88,33 @@ export default function ResultScreen() {
         {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statRow}>
-            <Ionicons name="time-outline" size={24} color="#146C43" style={styles.statIcon} />
+            <Ionicons
+              name="time-outline"
+              size={24}
+              color="#146C43"
+              style={styles.statIcon}
+            />
             <Text style={styles.statText}>Time taken: 12:34</Text>
           </View>
           <View style={styles.statRow}>
-            <Ionicons name="book-outline" size={24} color="#5D4037" style={styles.statIcon} />
+            <Ionicons
+              name="book-outline"
+              size={24}
+              color="#5D4037"
+              style={styles.statIcon}
+            />
             <Text style={styles.statText}>Unfamiliar words: 3</Text>
           </View>
           <View style={styles.statRow}>
-            <Ionicons name="trending-up-outline" size={24} color="#28A745" style={styles.statIcon} />
-            <Text style={styles.statTrendText}>↑ Better than last time! +5%</Text>
+            <Ionicons
+              name="trending-up-outline"
+              size={24}
+              color="#28A745"
+              style={styles.statIcon}
+            />
+            <Text style={styles.statTrendText}>
+              ↑ Better than last time! +5%
+            </Text>
           </View>
         </View>
 
@@ -70,19 +123,21 @@ export default function ResultScreen() {
           <TouchableOpacity style={styles.secondaryButton}>
             <Text style={styles.secondaryButtonText}>Review Answers</Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.primaryButton}>
-            <Text style={styles.primaryButtonText}>Take 2nd Attempt (Tagalog)</Text>
+            <Text style={styles.primaryButtonText}>
+              Take 2nd Attempt (Tagalog)
+            </Text>
           </TouchableOpacity>
-          
+
           <TouchableOpacity style={styles.homeLink} onPress={handleHomePress}>
             <Text style={styles.homeLinkText}>Back to Home</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
 
-      <SentimentModal 
-        visible={showSentiment} 
+      <SentimentModal
+        visible={showSentiment}
         onClose={handleSentimentClose}
         onSelect={handleSentimentClose}
       />
@@ -93,24 +148,24 @@ export default function ResultScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: "#FFFFFF",
   },
   content: {
     padding: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   titleSection: {
     marginBottom: 20,
-    alignItems: 'center',
+    alignItems: "center",
   },
   assessmentTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#146C43',
-    textAlign: 'center',
+    fontWeight: "bold",
+    color: "#146C43",
+    textAlign: "center",
   },
   mascotArea: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 20,
   },
   confettiBg: {
@@ -118,17 +173,17 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontSize: 22,
-    fontWeight: 'bold',
-    color: '#146C43',
+    fontWeight: "bold",
+    color: "#146C43",
   },
   scoreCard: {
-    backgroundColor: '#FAF9F6', // Cream
-    width: '100%',
+    backgroundColor: "#FAF9F6", // Cream
+    width: "100%",
     borderRadius: 20,
     padding: 30,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 30,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -136,17 +191,17 @@ const styles = StyleSheet.create({
   },
   percentageText: {
     fontSize: 70,
-    fontWeight: '900',
-    color: '#146C43',
+    fontWeight: "900",
+    color: "#146C43",
   },
   scoreSubText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#5D4037', // Brownish
+    fontWeight: "bold",
+    color: "#5D4037", // Brownish
     marginBottom: 15,
   },
   starsContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     marginBottom: 10,
   },
   star: {
@@ -154,71 +209,71 @@ const styles = StyleSheet.create({
   },
   starsEarnedText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#5D4037',
+    fontWeight: "bold",
+    color: "#5D4037",
   },
   statsContainer: {
-    width: '100%',
+    width: "100%",
     paddingHorizontal: 20,
     marginBottom: 40,
   },
   statRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 15,
   },
   statIcon: {
     marginRight: 15,
     width: 30,
-    textAlign: 'center',
+    textAlign: "center",
   },
   statText: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#333',
+    fontWeight: "500",
+    color: "#333",
   },
   statTrendText: {
     fontSize: 18,
-    fontWeight: 'bold',
-    color: '#146C43', // Green
+    fontWeight: "bold",
+    color: "#146C43", // Green
   },
   actionsContainer: {
-    width: '100%',
+    width: "100%",
   },
   secondaryButton: {
-    width: '100%',
+    width: "100%",
     paddingVertical: 15,
     borderRadius: 12,
     borderWidth: 2,
-    borderColor: '#146C43',
-    alignItems: 'center',
+    borderColor: "#146C43",
+    alignItems: "center",
     marginBottom: 15,
   },
   secondaryButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#146C43',
+    fontWeight: "bold",
+    color: "#146C43",
   },
   primaryButton: {
-    width: '100%',
+    width: "100%",
     paddingVertical: 15,
     borderRadius: 12,
-    backgroundColor: '#146C43',
-    alignItems: 'center',
+    backgroundColor: "#146C43",
+    alignItems: "center",
     marginBottom: 20,
   },
   primaryButtonText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFF',
+    fontWeight: "bold",
+    color: "#FFF",
   },
   homeLink: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 10,
   },
   homeLinkText: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: '#666',
+    fontWeight: "bold",
+    color: "#666",
   },
 });

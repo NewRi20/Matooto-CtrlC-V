@@ -1,23 +1,11 @@
-// backend/src/services/gemini.service.ts
-// This file manages the Gemini AI model for Matooto.
-// Handles: story generation, question generation, and comprehension level tagging.
-// API key is stored in .env — never hardcoded, never pushed to GitHub.
-
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as dotenv from "dotenv";
-import { SYSTEM_INSTRUCTION } from "./gemini.instructions";
+import { SYSTEM_INSTRUCTION } from "./gemini.instructions.ts";
 
 dotenv.config();
 
-// ----------------------------------------------------------------
-// Model Setup
-// ----------------------------------------------------------------
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-// ----------------------------------------------------------------
-// Types
-// ----------------------------------------------------------------
 
 export type StoryLength = "short" | "medium" | "long";
 export type MotherTongue = "filipino" | "cebuano" | "ilocano";
@@ -48,14 +36,11 @@ export type ComprehensionLevel = 1 | 2 | 3 | 4 | 5;
 
 export interface ComprehensionResult {
   level: ComprehensionLevel;
-  label: string;        // e.g. "Approaching"
-  description: string;  // e.g. "Generally understands but has some gaps"
-  score: number;        // percentage 0–100
+  label: string;       
+  description: string;  
+  score: number; 
 }
 
-// ----------------------------------------------------------------
-// Word count targets
-// ----------------------------------------------------------------
 
 const WORD_COUNT: Record<StoryLength, { min: number; max: number }> = {
   short:  { min: 80,  max: 150 },
@@ -63,9 +48,6 @@ const WORD_COUNT: Record<StoryLength, { min: number; max: number }> = {
   long:   { min: 400, max: 600 },
 };
 
-// ----------------------------------------------------------------
-// Helpers
-// ----------------------------------------------------------------
 
 function getReadingLevel(gradeLevel: number): string {
   if (gradeLevel <= 2) return "very simple sentences and basic vocabulary (Grades 1–2)";
@@ -79,18 +61,12 @@ function parseJSON<T>(raw: string): T {
   return JSON.parse(cleaned) as T;
 }
 
-// Returns a fresh model instance with system instructions applied
 function getModel() {
   return genAI.getGenerativeModel({
-    model: "gemini-2.0-flash",
-    systemInstruction: SYSTEM_INSTRUCTION,
+    model: "gemini-2.5-flash-lite",
   });
 }
 
-// ----------------------------------------------------------------
-// 1. Generate Story
-//    Used for both English (attempt 1) and mother tongue (attempt 2)
-// ----------------------------------------------------------------
 
 export async function generateStory(
   gradeLevel: number,
@@ -130,14 +106,13 @@ Respond ONLY with valid JSON in this exact shape:
 `;
 
   const model = getModel();
-  const result = await model.generateContent(prompt);
+  const fullPrompt = `${SYSTEM_INSTRUCTION}
+
+${prompt}`;
+  const result = await model.generateContent(fullPrompt);
   return parseJSON<GeneratedStory>(result.response.text());
 }
 
-// ----------------------------------------------------------------
-// 2. Generate Questions
-//    Takes the confirmed story and produces MCQ questions
-// ----------------------------------------------------------------
 
 export async function generateQuestions(
   story: GeneratedStory,
@@ -182,15 +157,13 @@ Respond ONLY with a valid JSON array in this exact shape:
 `;
 
   const model = getModel();
-  const result = await model.generateContent(prompt);
+  const fullPrompt = `${SYSTEM_INSTRUCTION}
+
+${prompt}`;
+  const result = await model.generateContent(fullPrompt);
   return parseJSON<GeneratedQuestion[]>(result.response.text());
 }
 
-// ----------------------------------------------------------------
-// 3. Tag Comprehension Level
-//    Called after a student submits their answers
-//    Returns their level (1–5) based on score
-// ----------------------------------------------------------------
 
 export async function tagComprehensionLevel(
   score: number,
@@ -224,6 +197,9 @@ Respond ONLY with valid JSON in this exact shape:
 `;
 
   const model = getModel();
-  const result = await model.generateContent(prompt);
+  const fullPrompt = `${SYSTEM_INSTRUCTION}
+
+${prompt}`;
+  const result = await model.generateContent(fullPrompt);
   return parseJSON<ComprehensionResult>(result.response.text());
 }

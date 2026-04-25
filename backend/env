@@ -1,9 +1,0 @@
-# -----------------------------------------------------------
-# Matooto Backend Environment Variables
-# -----------------------------------------------------------
-# 1. Get your free Gemini API key at https://aistudio.google.com/app/apikey
-# 2. Paste it below replacing YOUR_API_KEY_HERE
-# 3. NEVER commit this file to GitHub (.env is already in .gitignore)
-# -----------------------------------------------------------
-
-GEMINI_API_KEY=AIzaSyAcDH0MJxq5fWhZbVtZIoAcRzii6KSIwM8

@@ -1,14 +1,33 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, Image } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, View, Text, StyleSheet, TouchableOpacity, SafeAreaView, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { useAuth } from '@/hooks/useAuth';
+
 export default function LoginScreen() {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { user, initializing, signInWithEmail } = useAuth();
 
-  const handleGoogleLogin = () => {
-    // Navigate to dashboard for now
-    router.replace('/(tabs)');
+  useEffect(() => {
+    if (user) {
+      router.replace('/(tabs)' as any);
+    }
+  }, [router, user]);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert('Missing information', 'Enter your email and password to continue.');
+      return;
+    }
+
+    try {
+      await signInWithEmail(email.trim(), password);
+    } catch (error) {
+      Alert.alert('Login failed', 'Check your email/password and try again.');
+    }
   };
 
   return (
@@ -25,18 +44,43 @@ export default function LoginScreen() {
 
       <View style={styles.formContainer}>
         <Text style={styles.welcomeText}>Welcome Back!</Text>
-        <Text style={styles.subtitleText}>Sign in to continue your journey.</Text>
+        <Text style={styles.subtitleText}>Sign in with your email and password.</Text>
 
-        {/* Google Sign In Button */}
-        <TouchableOpacity style={styles.googleButton} onPress={handleGoogleLogin}>
-          <Ionicons name="logo-google" size={24} color="#DB4437" style={styles.googleIcon} />
-          <Text style={styles.googleButtonText}>Continue with Google</Text>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="you@example.com"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            value={email}
+            onChangeText={setEmail}
+          />
+        </View>
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Your password"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={[styles.loginButton, initializing && styles.googleButtonDisabled]}
+          onPress={handleLogin}
+          disabled={initializing}
+        >
+          <Text style={styles.googleButtonText}>Sign In</Text>
         </TouchableOpacity>
 
         {/* Sign Up Link */}
         <View style={styles.signupContainer}>
           <Text style={styles.signupText}>Don't have an account? </Text>
-          <TouchableOpacity onPress={() => router.push('/signup')}>
+          <TouchableOpacity onPress={() => router.push('/(auth)/signup')}>
             <Text style={styles.signupLink}>Sign Up</Text>
           </TouchableOpacity>
         </View>
@@ -96,9 +140,27 @@ const styles = StyleSheet.create({
     color: '#666',
     marginBottom: 40,
   },
-  googleButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  fieldGroup: {
+    marginBottom: 16,
+  },
+  fieldLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 8,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#DDD',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: '#FFF',
+    fontSize: 15,
+    color: '#333',
+    marginBottom: 4,
+  },
+  loginButton: {
     justifyContent: 'center',
     backgroundColor: '#FFF',
     borderWidth: 1,
@@ -111,9 +173,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    marginTop: 8,
   },
-  googleIcon: {
-    marginRight: 10,
+  googleButtonDisabled: {
+    opacity: 0.6,
   },
   googleButtonText: {
     fontSize: 16,

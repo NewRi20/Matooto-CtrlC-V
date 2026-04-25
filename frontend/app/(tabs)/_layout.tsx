@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -12,7 +13,22 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: '#146C43', // Forest Green
         tabBarInactiveTintColor: '#A0A0A0',
-        headerShown: false,
+        headerShown: true,
+        headerTitleAlign: 'center',
+        headerTitle: () => (
+          <Image
+            source={require('@/assets/images/Logo.svg')}
+            style={{ width: 120, height: 40 }}
+            contentFit="contain"
+          />
+        ),
+        headerStyle: {
+          backgroundColor: '#FFFFFF',
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: '#F0F0F0',
+        },
         tabBarButton: HapticTab,
         tabBarStyle: {
           backgroundColor: '#FFFFFF',

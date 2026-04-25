@@ -5,7 +5,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Image } from 'expo-image';
 import { SentimentModal } from '../../components/SentimentModal';
 
-export default function ResultScreen() {
+export default function AttemptResultScreen() {
   const router = useRouter();
   const { score: scoreParam } = useLocalSearchParams<{ score?: string }>();
   const [showSentiment, setShowSentiment] = useState(false);
@@ -77,13 +77,6 @@ export default function ResultScreen() {
             onPress={() => router.push('/assessment/review')}
           >
             <Text style={styles.secondaryButtonText}>Review Answers</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={styles.primaryButton}
-            onPress={() => router.push('/assessment/attempt_read')}
-          >
-            <Text style={styles.primaryButtonText}>Take 2nd Attempt (Tagalog)</Text>
           </TouchableOpacity>
           
           <TouchableOpacity style={styles.homeLink} onPress={handleHomePress}>
@@ -199,19 +192,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#146C43',
-  },
-  primaryButton: {
-    width: '100%',
-    paddingVertical: 15,
-    borderRadius: 12,
-    backgroundColor: '#146C43',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  primaryButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#FFF',
   },
   homeLink: {
     alignItems: 'center',

@@ -5,8 +5,8 @@
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as dotenv from "dotenv";
-import { SYSTEM_INSTRUCTION } from "./gemini.instructions";
-import { getRAGContext } from "./rag.service";
+import { SYSTEM_INSTRUCTION } from "./gemini.instructions.ts";
+import { getRAGContext } from "./rag.service.ts";
 
 dotenv.config();
 

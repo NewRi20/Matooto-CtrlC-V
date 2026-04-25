@@ -5,7 +5,7 @@
 // How to run:
 //   npx tsx src/scripts/seed.ts
 
-import { seedVocabularyWithEmbeddings } from "../services/rag.service";
+import { seedVocabularyWithEmbeddings } from "../services/rag.service.ts";
 
 seedVocabularyWithEmbeddings()
   .then(() => {

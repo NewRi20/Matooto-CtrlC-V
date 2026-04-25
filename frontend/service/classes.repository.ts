@@ -21,6 +21,7 @@ export interface ClassData {
   subject: string;
   teacherId: DocumentReference;
   studentIds: DocumentReference[];
+  classCode: string;
 }
 
 export interface CreateClassInput {
@@ -39,6 +40,16 @@ export interface StudentProfile {
   onboarding?: boolean;
 }
 
+// Generates a unique class code (6 alphanumeric characters)
+const generateClassCode = (): string => {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) {
+    code += characters.charAt(Math.floor(Math.random() * characters.length));
+  }
+  return code;
+};
+
 // creates a new class document in Firestore
 export const createClass = async (classData: CreateClassInput) => {
   try {
@@ -51,6 +62,7 @@ export const createClass = async (classData: CreateClassInput) => {
       subject: classData.subject,
       teacherId: teacherRef,
       studentIds: studentRefs,
+      classCode: generateClassCode(),
     };
 
     const docRef = await addDoc(collection(db, 'classes'), newClassData);
@@ -177,6 +189,34 @@ export const getClassesByStudent = async (studentUid: string) => {
 };
 
 /**
+ * Fetches a class by its class code.
+ * @param classCode - The unique class code
+ */
+export const getClassByCode = async (classCode: string) => {
+  try {
+    const q = query(
+      collection(db, 'classes'),
+      where('classCode', '==', classCode.toUpperCase())
+    );
+
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      return null;
+    }
+
+    const docSnap = querySnapshot.docs[0];
+    return {
+      id: docSnap.id,
+      ...(docSnap.data() as Omit<ClassData, 'id'>),
+    };
+  } catch (error) {
+    console.error('Error fetching class by code: ', error);
+    throw error;
+  }
+};
+
+/**
  * Deletes a class from the database.
  * @param classId - The ID of the class document to delete
  */
@@ -212,6 +252,43 @@ export const getClassById = async (classId: string) => {
     };
   } catch (error) {
     console.error('Error fetching class by ID: ', error);
+    throw error;
+  }
+};
+
+/**
+ * Allows a student to join a class using a class code.
+ * @param classCode - The class code entered by the student
+ * @param studentUid - The plain string ID of the student
+ */
+export const joinClassByCode = async (classCode: string, studentUid: string) => {
+  try {
+    const classData = await getClassByCode(classCode);
+
+    if (!classData) {
+      throw new Error('Class not found. Please check the code and try again.');
+    }
+
+    // Check if student is already enrolled
+    const studentRef = doc(db, 'users', studentUid);
+    const isAlreadyEnrolled = classData.studentIds.some(
+      (ref) => ref.id === studentUid
+    );
+
+    if (isAlreadyEnrolled) {
+      throw new Error('You are already enrolled in this class.');
+    }
+
+    // Enroll the student
+    await enrollStudentsBatch(classData.id!, [studentUid]);
+
+    return {
+      success: true,
+      classId: classData.id,
+      className: classData.className,
+    };
+  } catch (error) {
+    console.error('Error joining class by code: ', error);
     throw error;
   }
 };

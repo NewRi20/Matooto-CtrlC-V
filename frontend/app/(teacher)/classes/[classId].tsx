@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
@@ -72,6 +72,18 @@ export default function ClassDetailsScreen() {
     void loadClass();
   }, [classIdValue]);
 
+  const handleShareCode = async () => {
+    if (!classData) return;
+    try {
+      await Share.share({
+        message: `Join my class "${classData.className}" using the code: ${classData.classCode}`,
+        title: 'Class Code',
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
+
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -102,52 +114,73 @@ export default function ClassDetailsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={{ marginRight: 15 }}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <View>
+        <View style={styles.headerContent}>
           <Text style={styles.headerTitle}>{classData.className}</Text>
           <Text style={styles.headerSub}>Student Roster & Metrics</Text>
         </View>
       </View>
-      
+
+      {/* Class Code Banner */}
+      <View style={styles.codeBanner}>
+        <View style={styles.codeInfo}>
+          <Ionicons name="key" size={16} color="#146C43" />
+          <View style={{ marginLeft: 10, flex: 1 }}>
+            <Text style={styles.codeLabel}>Class Code</Text>
+            <Text style={styles.codeBannerCode}>{classData.classCode}</Text>
+          </View>
+        </View>
+        <TouchableOpacity style={styles.codeBannerShareButton} onPress={handleShareCode}>
+          <Ionicons name="share-social" size={18} color="#146C43" />
+        </TouchableOpacity>
+      </View>
+
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>Students</Text>
-        
-        {students.map((student) => (
-          <TouchableOpacity 
-            key={student.id} 
-            style={styles.studentCard}
-            onPress={() => router.push(`/(teacher)/classes/student/${student.id}` as any)}
-          >
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>{student.fullName.charAt(0)}</Text>
-            </View>
-            
-            <View style={styles.studentInfo}>
-              <Text style={styles.studentName}>{student.fullName}</Text>
-              
-              <View style={styles.progressContainer}>
-                <View style={styles.progressBarBg}>
-                  <View style={[
-                    styles.progressBarFill, 
-                    { 
-                      width: `${student.score}%`, 
-                      backgroundColor: student.flag ? '#D32F2F' : '#146C43' 
-                    }
-                  ]} />
+
+        {students.length === 0 ? (
+          <View style={styles.noStudents}>
+            <Ionicons name="people-outline" size={32} color="#CCC" />
+            <Text style={styles.noStudentsText}>No students yet</Text>
+          </View>
+        ) : (
+          students.map((student) => (
+            <TouchableOpacity
+              key={student.id}
+              style={styles.studentCard}
+              onPress={() => router.push(`/(teacher)/classes/student/${student.id}` as any)}
+            >
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>{student.fullName.charAt(0)}</Text>
+              </View>
+
+              <View style={styles.studentInfo}>
+                <Text style={styles.studentName}>{student.fullName}</Text>
+
+                <View style={styles.progressContainer}>
+                  <View style={styles.progressBarBg}>
+                    <View style={[
+                      styles.progressBarFill,
+                      {
+                        width: `${student.score}%`,
+                        backgroundColor: student.flag ? '#D32F2F' : '#146C43'
+                      }
+                    ]} />
+                  </View>
+                  <Text style={styles.scoreText}>{student.score}%</Text>
                 </View>
-                <Text style={styles.scoreText}>{student.score}%</Text>
               </View>
-            </View>
-            
-            {student.flag ? (
-              <View style={styles.flagContainer}>
-                <Ionicons name="warning" size={24} color="#D32F2F" />
-                <Text style={styles.flagText}>Needs Help</Text>
-              </View>
-            ) : (
-              <Ionicons name="chevron-forward" size={20} color="#CCC" />
-            )}
-          </TouchableOpacity>
-        ))}
+
+              {student.flag ? (
+                <View style={styles.flagContainer}>
+                  <Ionicons name="warning" size={24} color="#D32F2F" />
+                  <Text style={styles.flagText}>Needs Help</Text>
+                </View>
+              ) : (
+                <Ionicons name="chevron-forward" size={20} color="#CCC" />
+              )}
+            </TouchableOpacity>
+          ))
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -156,14 +189,22 @@ export default function ClassDetailsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FAF9F6' },
   header: { flexDirection: 'row', alignItems: 'center', padding: 20, backgroundColor: '#FFF', borderBottomWidth: 1, borderBottomColor: '#EEE' },
+  headerContent: { flex: 1 },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#146C43' },
   headerSub: { fontSize: 14, color: '#666' },
+  codeBanner: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#E8F5E9', marginHorizontal: 20, marginTop: 15, marginBottom: 15, paddingHorizontal: 15, paddingVertical: 12, borderRadius: 10, borderWidth: 1, borderColor: '#C8E6C9' },
+  codeInfo: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  codeLabel: { fontSize: 11, fontWeight: '600', color: '#2E7D32' },
+  codeBannerCode: { fontSize: 16, fontWeight: '700', color: '#146C43', marginTop: 2 },
+  codeBannerShareButton: { padding: 8, marginLeft: 10 },
   content: { padding: 20 },
   centerState: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   centerStateText: { marginTop: 12, color: '#666' },
   backFallbackButton: { marginTop: 14, backgroundColor: '#146C43', paddingHorizontal: 18, paddingVertical: 10, borderRadius: 10 },
   backFallbackText: { color: '#FFF', fontWeight: '700' },
   sectionTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 15 },
+  noStudents: { alignItems: 'center', paddingVertical: 40 },
+  noStudentsText: { marginTop: 12, color: '#999', fontSize: 14 },
   studentCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFF', borderRadius: 12, padding: 15, marginBottom: 12, borderWidth: 1, borderColor: '#EEE' },
   avatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#E0E0E0', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   avatarText: { fontSize: 18, fontWeight: 'bold', color: '#666' },

@@ -1,10 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import React, { useState } from 'react';
+import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Modal, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
-import { createClass } from '@/service/classes.repository';
+import { createClass, getClassById } from '@/service/classes.repository';
 
 export default function CreateClassScreen() {
   const router = useRouter();
@@ -12,13 +12,9 @@ export default function CreateClassScreen() {
   const [className, setClassName] = useState('');
   const [gradeLevel, setGradeLevel] = useState('');
   const [subject, setSubject] = useState('');
-  const [studentUids, setStudentUids] = useState('');
   const [submitting, setSubmitting] = useState(false);
-
-  const parsedStudentUids = useMemo(
-    () => studentUids.split(',').map((uid) => uid.trim()).filter(Boolean),
-    [studentUids]
-  );
+  const [classCode, setClassCode] = useState('');
+  const [showCodeModal, setShowCodeModal] = useState(false);
 
   const handleCreateClass = async () => {
     if (!user) {
@@ -39,21 +35,45 @@ export default function CreateClassScreen() {
 
     try {
       setSubmitting(true);
-      await createClass({
+      const classId = await createClass({
         className: className.trim(),
         gradeLevel: parsedGradeLevel,
         subject: subject.trim(),
         teacherUid: user.uid,
-        studentUids: parsedStudentUids,
       });
 
-      Alert.alert('Class created', 'Your class has been uploaded successfully.');
-      router.back();
+      // Fetch the created class to get the class code
+      const classData = await getClassById(classId);
+      if (classData?.classCode) {
+        setClassCode(classData.classCode);
+        setShowCodeModal(true);
+      } else {
+        Alert.alert('Class created', 'Your class has been created successfully.');
+        router.back();
+      }
     } catch (error) {
       Alert.alert('Unable to create class', 'Please try again.');
+      console.error('Create class error:', error);
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleShareCode = async () => {
+    try {
+      await Share.share({
+        message: `Join my class using the code: ${classCode}`,
+        title: 'Class Code',
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
+
+  const handleContinue = () => {
+    setShowCodeModal(false);
+    // Go back to class list which will refresh automatically
+    router.back();
   };
 
   return (
@@ -93,27 +113,54 @@ export default function CreateClassScreen() {
             onChangeText={setSubject}
           />
 
-          <Text style={styles.label}>Student UIDs</Text>
-          <TextInput
-            style={[styles.input, styles.multilineInput]}
-            placeholder="uid1, uid2, uid3"
-            value={studentUids}
-            onChangeText={setStudentUids}
-            multiline
-          />
-          <Text style={styles.helperText}>
-            Optional. Paste Firestore user IDs separated by commas to enroll students right away.
-          </Text>
-
           <TouchableOpacity
             style={[styles.button, submitting && styles.buttonDisabled]}
             onPress={handleCreateClass}
             disabled={submitting}
           >
-            <Text style={styles.buttonText}>{submitting ? 'Creating...' : 'Upload Class'}</Text>
+            <Text style={styles.buttonText}>{submitting ? 'Creating...' : 'Create Class'}</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      {/* Class Code Modal */}
+      <Modal
+        visible={showCodeModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => {
+          setShowCodeModal(false);
+          router.back();
+        }}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Class Created!</Text>
+              <Ionicons name="checkmark-circle" size={60} color="#28A745" />
+            </View>
+
+            <View style={styles.codeContainer}>
+              <Text style={styles.codeLabel}>Share this code with your students</Text>
+              <View style={styles.codBox}>
+                <Text style={styles.codeText}>{classCode}</Text>
+              </View>
+              <Text style={styles.codeDescription}>Students can use this code to join your class</Text>
+            </View>
+
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity style={styles.shareButton} onPress={handleShareCode}>
+                <Ionicons name="share-social" size={20} color="#FFF" style={{ marginRight: 8 }} />
+                <Text style={styles.shareButtonText}>Share Code</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+                <Text style={styles.continueButtonText}>Continue</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -132,4 +179,18 @@ const styles = StyleSheet.create({
   button: { marginTop: 22, backgroundColor: '#146C43', borderRadius: 14, alignItems: 'center', paddingVertical: 15 },
   buttonDisabled: { opacity: 0.65 },
   buttonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  modalContainer: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24, paddingTop: 30 },
+  modalHeader: { alignItems: 'center', marginBottom: 30 },
+  modalTitle: { fontSize: 24, fontWeight: '800', color: '#146C43', marginBottom: 15 },
+  codeContainer: { alignItems: 'center', marginBottom: 30, backgroundColor: '#E8F5E9', borderRadius: 15, padding: 20 },
+  codeLabel: { fontSize: 14, fontWeight: '600', color: '#333', marginBottom: 15 },
+  codBox: { backgroundColor: '#FFF', borderWidth: 2, borderColor: '#146C43', borderRadius: 12, paddingHorizontal: 30, paddingVertical: 20, marginBottom: 15 },
+  codeText: { fontSize: 32, fontWeight: '900', color: '#146C43', letterSpacing: 2, textAlign: 'center' },
+  codeDescription: { fontSize: 12, color: '#666', fontStyle: 'italic' },
+  modalButtonsContainer: { gap: 12 },
+  shareButton: { backgroundColor: '#146C43', borderRadius: 12, paddingVertical: 14, alignItems: 'center', justifyContent: 'center', flexDirection: 'row' },
+  shareButtonText: { color: '#FFF', fontSize: 16, fontWeight: '700' },
+  continueButton: { backgroundColor: '#E8F5E9', borderRadius: 12, paddingVertical: 14, alignItems: 'center', borderWidth: 2, borderColor: '#146C43' },
+  continueButtonText: { color: '#146C43', fontSize: 16, fontWeight: '700' },
 });

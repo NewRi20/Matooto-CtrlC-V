@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
+import { ActivityIndicator, Alert, View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Share } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 
 import { useAuth } from '@/hooks/useAuth';
 import { getClassesByTeacher, type ClassData } from '@/service/classes.repository';
@@ -12,25 +12,43 @@ export default function ClassListScreen() {
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const loadClasses = async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const teacherClasses = await getClassesByTeacher(user.uid);
+      setClasses(teacherClasses);
+    } catch (error) {
+      Alert.alert('Unable to load classes', 'Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const loadClasses = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const teacherClasses = await getClassesByTeacher(user.uid);
-        setClasses(teacherClasses);
-      } catch (error) {
-        Alert.alert('Unable to load classes', 'Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     void loadClasses();
   }, [user]);
+
+  // Refresh when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      void loadClasses();
+    }, [user])
+  );
+
+  const handleShareCode = async (classCode: string, className: string) => {
+    try {
+      await Share.share({
+        message: `Join my class "${className}" using the code: ${classCode}`,
+        title: 'Class Code',
+      });
+    } catch (error) {
+      console.error('Share error:', error);
+    }
+  };
 
   if (loading) {
     return (
@@ -49,20 +67,20 @@ export default function ClassListScreen() {
         <Text style={styles.headerTitle}>My Classes</Text>
         <TouchableOpacity style={styles.createButton} onPress={() => router.push('/(teacher)/classes/create' as any)}>
           <Ionicons name="add" size={18} color="#FFF" />
-          <Text style={styles.createButtonText}>Upload Class</Text>
+          <Text style={styles.createButtonText}>Create Class</Text>
         </TouchableOpacity>
       </View>
-      
+
       <ScrollView contentContainerStyle={styles.content}>
         {classes.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="school-outline" size={48} color="#146C43" />
             <Text style={styles.emptyTitle}>No classes yet</Text>
-            <Text style={styles.emptyText}>Create a class in Firestore to see it here.</Text>
+            <Text style={styles.emptyText}>Create a class to see it here.</Text>
           </View>
         ) : classes.map((cls) => (
-          <TouchableOpacity 
-            key={cls.id} 
+          <TouchableOpacity
+            key={cls.id}
             style={styles.classCard}
             onPress={() => router.push(`/(teacher)/classes/${cls.id}`)}
           >
@@ -72,9 +90,18 @@ export default function ClassListScreen() {
               </View>
               <View style={styles.classInfo}>
                 <Text style={styles.className}>{cls.className}</Text>
-                <Text style={styles.classSubject}>Grade {cls.gradeLevel}</Text>
-                <Text style={styles.classSubject}>Subject: {cls.subject}</Text>
+                <Text style={styles.classSubject}>Grade {cls.gradeLevel} • {cls.subject}</Text>
+                <View style={styles.codeRow}>
+                  <Ionicons name="key" size={12} color="#146C43" />
+                  <Text style={styles.classCode}>{cls.classCode}</Text>
+                </View>
               </View>
+              <TouchableOpacity
+                style={styles.shareButton}
+                onPress={() => handleShareCode(cls.classCode, cls.className)}
+              >
+                <Ionicons name="share-social" size={18} color="#146C43" />
+              </TouchableOpacity>
             </View>
             <View style={styles.cardFooter}>
               <Ionicons name="people" size={16} color="#666" />
@@ -105,7 +132,10 @@ const styles = StyleSheet.create({
   iconContainer: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#E8F5E9', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
   classInfo: { flex: 1 },
   className: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 4 },
-  classSubject: { fontSize: 14, color: '#666' },
+  classSubject: { fontSize: 13, color: '#666', marginBottom: 6 },
+  codeRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  classCode: { fontSize: 12, fontWeight: '700', color: '#146C43', backgroundColor: '#E8F5E9', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
+  shareButton: { padding: 8, marginLeft: 10 },
   cardFooter: { flexDirection: 'row', alignItems: 'center', borderTopWidth: 1, borderTopColor: '#F0F0F0', paddingTop: 15 },
   studentCount: { marginLeft: 8, fontSize: 14, color: '#666', fontWeight: '500' }
 });

@@ -37,7 +37,7 @@ export default function AssessmentsScreen() {
 
         const q = query(
           collection(db, "assessments"),
-          where("teacherId", "==", user.uid)
+          where("teacherId", "==", user.uid),
         );
         const querySnapshot = await getDocs(q);
         const assessmentsList: Assessment[] = [];
@@ -73,7 +73,6 @@ export default function AssessmentsScreen() {
 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.sectionTitle}>Manage Assessments</Text>
-
         {loading ? (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#146C43" />
@@ -123,7 +122,6 @@ export default function AssessmentsScreen() {
             </View>
           ))
         )}
-
         <View style={{ height: 100 }} /> {/* Padding for FAB */}
       </ScrollView>
 

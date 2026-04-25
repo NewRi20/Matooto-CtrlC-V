@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -15,23 +16,26 @@ export default function TabLayout() {
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor: "#FFFFFF",
           borderTopWidth: 1,
-          borderTopColor: '#F0F0F0',
+          borderTopColor: "#F0F0F0",
           height: 60,
           paddingBottom: 10,
           paddingTop: 5,
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '500',
-        }
-      }}>
+          fontWeight: "500",
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <Ionicons size={24} name="home" color={color} />,
+          title: "Home",
+          tabBarIcon: ({ color }) => (
+            <Ionicons size={24} name="home" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -43,22 +47,28 @@ export default function TabLayout() {
       <Tabs.Screen
         name="assessments"
         options={{
-          title: 'Assessments',
-          tabBarIcon: ({ color }) => <Ionicons size={24} name="clipboard" color={color} />,
+          title: "Assessments",
+          tabBarIcon: ({ color }) => (
+            <Ionicons size={24} name="clipboard" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="resources"
         options={{
-          title: 'Resources',
-          tabBarIcon: ({ color }) => <Ionicons size={24} name="book" color={color} />,
+          title: "Classes",
+          tabBarIcon: ({ color }) => (
+            <Ionicons size={24} name="school" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: 'Profile',
-          tabBarIcon: ({ color }) => <Ionicons size={24} name="person" color={color} />,
+          title: "Profile",
+          tabBarIcon: ({ color }) => (
+            <Ionicons size={24} name="person" color={color} />
+          ),
         }}
       />
       {/* Hide the default explore tab if it exists */}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, TextInput, ScrollView } from 'react-native';
 import { Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,23 +11,8 @@ export default function SignupScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'Student' | 'Teacher'>('Student');
-  const [classCode, setClassCode] = useState('');
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  const { user, initializing, signUpWithEmail } = useAuth();
-
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    if (role === 'Teacher') {
-      router.replace('/(teacher)' as any);
-      return;
-    }
-
-    router.replace('/(tabs)' as any);
-  }, [role, router, user]);
+  const { initializing, signUpWithEmail } = useAuth();
 
   const handleSignup = async () => {
     if (!email || !password) {
@@ -41,17 +26,8 @@ export default function SignupScreen() {
     }
 
     try {
-      await signUpWithEmail(email.trim(), password, {
-        role,
-        classCode: role === 'Student' ? classCode : '',
-      });
-
-      if (role === 'Teacher') {
-        router.replace('/(teacher)' as any);
-        return;
-      }
-
-      router.replace('/(tabs)' as any);
+      await signUpWithEmail(email.trim(), password);
+      router.replace('/(onboarding)/welcome' as any);
     } catch (error) {
       Alert.alert('Signup failed', 'Check your details and try again.');
     }
@@ -119,43 +95,6 @@ export default function SignupScreen() {
             onChangeText={setConfirmPassword}
           />
         </View>
-
-        {/* Role Selection */}
-        <View style={styles.roleContainer}>
-          <Text style={styles.roleLabel}>I am a...</Text>
-          <View style={styles.roleButtons}>
-            <TouchableOpacity 
-              style={[styles.roleBtn, role === 'Student' && styles.roleBtnActive]}
-              onPress={() => setRole('Student')}
-            >
-              <Ionicons name="school" size={30} color={role === 'Student' ? '#146C43' : '#888'} />
-              <Text style={[styles.roleBtnText, role === 'Student' && styles.roleBtnTextActive]}>Student</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.roleBtn, role === 'Teacher' && styles.roleBtnActive]}
-              onPress={() => setRole('Teacher')}
-            >
-              <Ionicons name="people" size={30} color={role === 'Teacher' ? '#146C43' : '#888'} />
-              <Text style={[styles.roleBtnText, role === 'Teacher' && styles.roleBtnTextActive]}>Teacher</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Class Code Input (Only for Student) */}
-        {role === 'Student' && (
-          <View style={styles.inputContainer}>
-            <View style={styles.inputLabelRow}>
-              <Ionicons name="pricetag" size={20} color="#146C43" />
-              <Text style={styles.inputLabel}>Class Code</Text>
-            </View>
-            <TextInput
-              style={styles.input}
-              placeholder="(Ask your teacher for the class code)"
-              value={classCode}
-              onChangeText={setClassCode}
-            />
-          </View>
-        )}
 
         {/* Terms Checkbox */}
         <TouchableOpacity style={styles.checkboxContainer} onPress={() => setAgreedToTerms(!agreedToTerms)}>

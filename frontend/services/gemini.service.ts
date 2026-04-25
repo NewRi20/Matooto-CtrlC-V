@@ -1,20 +1,7 @@
-// backend/src/services/gemini.service.ts
-// This file manages the Gemini AI model for Matooto.
-// Handles: story generation, question generation, and comprehension level tagging.
-// API key is stored in .env — never hardcoded, never pushed to GitHub.
+// Frontend version of Gemini service - simplified for Expo
+// This version works directly in the React Native environment
 
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import * as dotenv from "dotenv";
-import { SYSTEM_INSTRUCTION } from "./gemini.instructions.ts";
-import { getRAGContext } from "./rag.service.ts";
-
-dotenv.config();
-
-// ----------------------------------------------------------------
-// Model Setup
-// ----------------------------------------------------------------
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 // ----------------------------------------------------------------
 // Types
@@ -45,14 +32,61 @@ export interface GeneratedQuestion {
   comprehensionSkill: string;
 }
 
-export type ComprehensionLevel = 1 | 2 | 3 | 4 | 5;
+// ----------------------------------------------------------------
+// Setup
+// ----------------------------------------------------------------
 
-export interface ComprehensionResult {
-  level: ComprehensionLevel;
-  label: string; // e.g. "Approaching"
-  description: string; // e.g. "Generally understands but has some gaps"
-  score: number; // percentage 0–100
+const API_KEY = process.env.EXPO_PUBLIC_GEMINI_API_KEY;
+
+if (!API_KEY) {
+  console.warn(
+    "⚠️  EXPO_PUBLIC_GEMINI_API_KEY not found in environment variables. Story generation will not work.",
+  );
 }
+
+const genAI = new GoogleGenerativeAI(API_KEY || "");
+
+// ----------------------------------------------------------------
+// System Instruction
+// ----------------------------------------------------------------
+
+const SYSTEM_INSTRUCTION = `
+You are Matooto's AI learning assistant — an educational tool built specifically
+for Philippine elementary and high school students and their teachers.
+
+Your role is to:
+1. Generate age-appropriate, culturally relevant reading comprehension stories
+   for Filipino students — both in English and in Filipino mother tongue languages
+   (Filipino/Tagalog, Cebuano, Ilocano).
+2. Generate multiple-choice comprehension questions based on those stories.
+3. Evaluate a student's quiz performance and assign them a reading comprehension level.
+
+STORY GENERATION GUIDELINES:
+- Content must be appropriate for the grade level provided.
+- Stories must be original, engaging, and relatable to Filipino children's experiences.
+- Word count must strictly match the requested length (short: 80-150, medium: 200-350, long: 400-600).
+- Include Filipino cultural elements naturally (celebrations, family structures, geography, values).
+- Stories should have a clear beginning, middle, and end with a positive message when possible.
+- Avoid stereotypes and represent diverse Filipino backgrounds and perspectives.
+- Use age-appropriate vocabulary and sentence structures matching the grade level.
+
+COMPREHENSION QUESTION GUIDELINES:
+- Generate questions that test various comprehension skills:
+  * Main Idea / Theme
+  * Detail Recall / Literal Understanding
+  * Vocabulary in Context
+  * Inference / Reading Between the Lines
+  * Sequence / Story Structure
+  * Cause and Effect
+- Each question must have exactly 4 multiple-choice options (A, B, C, D).
+- Only ONE correct answer per question.
+- Incorrect options should be plausible but clearly wrong (no trick questions).
+- All questions must be answerable entirely from the story text.
+- Vary question difficulty across the set.
+
+OUTPUT FORMAT REQUIREMENTS:
+- Always respond in ONLY valid JSON — no markdown fences, no explanations, no code blocks.
+`;
 
 // ----------------------------------------------------------------
 // Word count targets
@@ -81,17 +115,15 @@ function parseJSON<T>(raw: string): T {
   return JSON.parse(cleaned) as T;
 }
 
-// Returns a fresh model instance with system instructions applied
 function getModel() {
   return genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-3.1-flash-lite-preview",
     systemInstruction: SYSTEM_INSTRUCTION,
   });
 }
 
 // ----------------------------------------------------------------
 // 1. Generate Story
-//    Used for both English (attempt 1) and mother tongue (attempt 2)
 // ----------------------------------------------------------------
 
 export async function generateStory(
@@ -103,10 +135,6 @@ export async function generateStory(
 ): Promise<GeneratedStory> {
   const { min, max } = WORD_COUNT[length];
   const readingLevel = getReadingLevel(gradeLevel);
-
-  // RAG context disabled for now (embedding model compatibility issues)
-  // Can be re-enabled once embedding model is available
-  const ragContext = "";
 
   const languageInstruction =
     language === "english"
@@ -126,8 +154,6 @@ Requirements:
 - The story must have a clear beginning, middle, and end
 - It must be engaging and relatable to Filipino children
 
-${ragContext ? ragContext : ""}
-
 Respond ONLY with valid JSON in this exact shape:
 {
   "title": "Story title",
@@ -145,7 +171,6 @@ Respond ONLY with valid JSON in this exact shape:
 
 // ----------------------------------------------------------------
 // 2. Generate Questions
-//    Takes the confirmed story and produces MCQ questions
 // ----------------------------------------------------------------
 
 export async function generateQuestions(
@@ -193,46 +218,4 @@ Respond ONLY with a valid JSON array in this exact shape:
   const model = getModel();
   const result = await model.generateContent(prompt);
   return parseJSON<GeneratedQuestion[]>(result.response.text());
-}
-
-// ----------------------------------------------------------------
-// 3. Tag Comprehension Level
-//    Called after a student submits their answers
-//    Returns their level (1–5) based on score
-// ----------------------------------------------------------------
-
-export async function tagComprehensionLevel(
-  score: number,
-  totalQuestions: number,
-  correctAnswers: number,
-  gradeLevel: number,
-  language: AssessmentLanguage,
-): Promise<ComprehensionResult> {
-  const prompt = `
-A Grade ${gradeLevel} student just completed a reading comprehension assessment in ${language}.
-
-Their results:
-- Score: ${score}% (${correctAnswers} out of ${totalQuestions} correct)
-- Grade Level: ${gradeLevel}
-- Language of assessment: ${language}
-
-Assign them a comprehension level from 1 to 5 using these guidelines:
-- Level 1 (Beginning): Score 0–39%
-- Level 2 (Developing): Score 40–59%
-- Level 3 (Approaching): Score 60–74%
-- Level 4 (Proficient): Score 75–89%
-- Level 5 (Advanced): Score 90–100%
-
-Respond ONLY with valid JSON in this exact shape:
-{
-  "level": 3,
-  "label": "Approaching",
-  "description": "Generally understands the story but has some gaps in comprehension.",
-  "score": ${score}
-}
-`;
-
-  const model = getModel();
-  const result = await model.generateContent(prompt);
-  return parseJSON<ComprehensionResult>(result.response.text());
 }

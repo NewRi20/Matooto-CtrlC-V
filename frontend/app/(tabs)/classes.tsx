@@ -106,6 +106,7 @@ export default function ClassesScreen() {
             <Ionicons name="school-outline" size={48} color="#146C43" />
             <Text style={styles.emptyTitle}>No classes yet</Text>
             <Text style={styles.emptyText}>Join a class using a class code.</Text>
+            
           </View>
         ) : (
           classes.map((cls) => (

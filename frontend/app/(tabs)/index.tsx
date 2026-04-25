@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView, SafeAreaView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 
 export default function DashboardScreen() {
   return (
@@ -12,30 +13,23 @@ export default function DashboardScreen() {
             <Text style={styles.greeting}>Good morning, AJ! 👋</Text>
             <Text style={styles.subGreeting}>Ready to learn something new today?</Text>
           </View>
-          <View style={styles.starsContainer}>
-            <Ionicons name="star" size={20} color="#FFD700" />
-            <Text style={styles.starsText}>120 Stars</Text>
-          </View>
         </View>
 
-        {/* Level Up Stats */}
-        <View style={styles.levelContainer}>
-          <Text style={styles.levelTitle}>Level 5 Scholar</Text>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: '60%' }]} />
-          </View>
-          <Text style={styles.levelSubtitle}>Keep reading to reach Level 6!</Text>
-        </View>
+        {/* Learner's Pet & Progress */}
+        <View style={styles.petCard}>
+          <View style={styles.petTextContainer}>
+            <Text style={styles.petLabel}>Your Companion</Text>
+            <Text style={styles.petTitle}>Level 5 Pet</Text>
 
-        {/* Streak Pet / Kamustahan */}
-        <View style={styles.kamustahanCard}>
-          <View style={styles.kamustahanTextContainer}>
-            <Text style={styles.kamustahanLabel}>Attendance & Sentiment Check-in</Text>
-            <Text style={styles.kamustahanTitle}>Kamustahan</Text>
-            <Text style={styles.kamustahanSub}>Let's start your day by checking in!</Text>
+            <View style={styles.petProgressContainer}>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: '60%' }]} />
+              </View>
+              <Text style={styles.petSub}>Keep reading to reach Level 6!</Text>
+            </View>
           </View>
-          <View style={styles.petPlaceholder}>
-            <Ionicons name="happy" size={50} color="#146C43" />
+          <View style={styles.petImageContainer}>
+            <Image source={require('@/assets/images/pet_5.svg')} style={{ width: 100, height: 100 }} contentFit="contain" />
           </View>
         </View>
 
@@ -79,13 +73,8 @@ export default function DashboardScreen() {
           </View>
         </View>
 
-        <View style={{ height: 80 }} /> {/* Padding for Floating Button */}
+        <View style={{ height: 20 }} /> {/* Padding */}
       </ScrollView>
-
-      {/* Floating Type (FAB) */}
-      <TouchableOpacity style={styles.fab}>
-        <Ionicons name="sparkles" size={24} color="#FFF" />
-      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -114,55 +103,23 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  starsContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF5E6',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#FFE0B2',
-  },
-  starsText: {
-    marginLeft: 6,
-    fontWeight: 'bold',
-    color: '#D4A017',
-  },
-  levelContainer: {
-    backgroundColor: '#FFF',
-    padding: 15,
-    borderRadius: 15,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  levelTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#146C43',
-    marginBottom: 8,
-  },
   progressBarBg: {
     height: 8,
-    backgroundColor: '#E9ECEF',
+    backgroundColor: '#C8E6C9',
     borderRadius: 4,
     overflow: 'hidden',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   progressBarFill: {
     height: '100%',
     backgroundColor: '#146C43',
     borderRadius: 4,
   },
-  levelSubtitle: {
-    fontSize: 12,
-    color: '#666',
+  petProgressContainer: {
+    marginTop: 10,
+    paddingRight: 10,
   },
-  kamustahanCard: {
+  petCard: {
     flexDirection: 'row',
     backgroundColor: '#E8F5E9',
     borderRadius: 15,
@@ -173,32 +130,30 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#C8E6C9',
   },
-  kamustahanTextContainer: {
+  petTextContainer: {
     flex: 1,
   },
-  kamustahanLabel: {
+  petLabel: {
     fontSize: 12,
     color: '#2E7D32',
     fontWeight: '600',
     marginBottom: 4,
   },
-  kamustahanTitle: {
+  petTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1B5E20',
     marginBottom: 6,
   },
-  kamustahanSub: {
+  petSub: {
     fontSize: 14,
     color: '#4CAF50',
   },
-  petPlaceholder: {
-    width: 70,
-    height: 70,
+  petImageContainer: {
+    width: 80,
+    height: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFF',
-    borderRadius: 35,
     marginLeft: 15,
   },
   actionButton: {
@@ -260,21 +215,5 @@ const styles = StyleSheet.create({
   },
   listArrow: {
     marginLeft: 'auto',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#F2A900', // vibrant yellow/orange for the "Floating type"
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#F2A900',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 6,
   },
 });

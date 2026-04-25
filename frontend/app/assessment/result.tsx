@@ -7,7 +7,10 @@ import { SentimentModal } from '../../components/SentimentModal';
 
 export default function ResultScreen() {
   const router = useRouter();
-  const { score: scoreParam } = useLocalSearchParams<{ score?: string }>();
+  const { score: scoreParam, assessmentTitle } = useLocalSearchParams<{
+    score?: string;
+    assessmentTitle?: string;
+  }>();
   const [showSentiment, setShowSentiment] = useState(false);
 
   const score = parseInt(scoreParam || '80', 10);
@@ -121,18 +124,18 @@ export default function ResultScreen() {
 
         {/* Action Buttons */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.secondaryButton}
-            onPress={() => router.push('/assessment/review')}
+            onPress={() => router.back()}
           >
             <Text style={styles.secondaryButtonText}>Review Answers</Text>
           </TouchableOpacity>
-          
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.primaryButton}
-            onPress={() => router.push('/assessment/attempt_read')}
+            onPress={() => router.replace('/(tabs)/assessments')}
           >
-            <Text style={styles.primaryButtonText}>Take 2nd Attempt (Tagalog)</Text>
+            <Text style={styles.primaryButtonText}>Back to Assessments</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.homeLink} onPress={handleHomePress}>

@@ -13,7 +13,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { db } from "../../../service/firebaseConfig";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc } from "firebase/firestore";
 import { useAuth } from "../../../hooks/useAuth";
 import { getClassesByTeacher, ClassData } from "../../../service/classes.repository";
 
@@ -36,6 +36,7 @@ export default function CreateAssessmentScreen() {
   const [questions, setQuestions] = useState<any[]>([]);
   const [timeLimit, setTimeLimit] = useState("15");
   const [dueDate, setDueDate] = useState("Today");
+  const [storyTitle, setStoryTitle] = useState("");
 
   // Load teacher's classes on mount
   useEffect(() => {
@@ -92,10 +93,13 @@ export default function CreateAssessmentScreen() {
         throw new Error(`API Error: ${response.status}`);
       }
 
-      const story = await response.json();
-      setStoryText(story.body);
-      setIsLoading(false);
-      setStep(2);
+     const story = await response.json();
+
+     setStoryText(story.body);
+     setStoryTitle(story.title || "Untitled Story"); 
+
+     setIsLoading(false);
+     setStep(2);
     } catch (error) {
       setIsLoading(false);
       Alert.alert(
@@ -117,7 +121,7 @@ export default function CreateAssessmentScreen() {
       const numQ = parseInt(numQuestions) || 3;
 
       const story = {
-        title: "Generated Story",
+        title: storyTitle || "Generated Story",
         body: storyText,
         wordCount: storyText.split(/\s+/).length,
         language: "english",
@@ -163,10 +167,17 @@ export default function CreateAssessmentScreen() {
 
   const handlePost = async (type: "Post" | "Schedule") => {
     try {
+
+      if (!user || !user.uid) {
+        Alert.alert("Error", "User not found. Please log in again.");
+        return;
+      }
+
       const assessmentData = {
-        teacherId: user?.uid,
+        teacherId: doc(db, "users", user.uid),
         classId: selectedClass?.id,
         className: selectedClass?.className,
+        title: storyTitle?.trim() || "Untitled Assessment",
         difficultyLevel,
         story: storyText,
         questions: questions.map((q, idx) => ({

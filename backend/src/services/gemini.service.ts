@@ -84,7 +84,7 @@ function parseJSON<T>(raw: string): T {
 // Returns a fresh model instance with system instructions applied
 function getModel() {
   return genAI.getGenerativeModel({
-    model: "gemini-2.5-flash",
+    model: "gemini-2.5-flash-lite",
     systemInstruction: SYSTEM_INSTRUCTION,
   });
 }

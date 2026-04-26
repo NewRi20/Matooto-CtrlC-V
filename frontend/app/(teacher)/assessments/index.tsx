@@ -16,6 +16,7 @@ import { useAuth } from "../../../hooks/useAuth";
 
 interface Assessment {
   id: string;
+  title: string;
   className: string;
   story: string;
   questions: any[];
@@ -34,26 +35,47 @@ export default function AssessmentsScreen() {
     React.useCallback(() => {
       const fetchAssessments = async () => {
         try {
-          if (!user?.uid) return;
+          setLoading(true);
+
+          if (!user?.uid) {
+            setLoading(false);
+            return;
+          }
 
           const q = query(
             collection(db, "assessments"),
-            where("teacherId", "==", user.uid),
+            where("teacherId", "==", doc(db, "users", user.uid)), // Pass a doc reference
           );
-          const querySnapshot = await getDocs(q);
-          const assessmentsList: Assessment[] = [];
 
-          querySnapshot.forEach((docSnap) => {
-            const data = docSnap.data();
-            assessmentsList.push({
-              id: docSnap.id,
-              className: data.className || "Untitled",
-              story: data.story || "",
-              questions: data.questions || [],
-              dueDate: data.dueDate || "No date",
-              status: data.status || "active",
-            });
-          });
+          const querySnapshot = await getDocs(q);
+
+          const assessmentsList: Assessment[] = querySnapshot.docs.map(
+            (docSnap) => {
+              const data = docSnap.data();
+
+              // Handle the date conversion safely
+              let formattedDueDate = "No date";
+              if (data.dueDate) {
+                if (data.dueDate.toDate) {
+                  // It's a Firestore Timestamp object
+                  formattedDueDate = data.dueDate.toDate().toLocaleDateString();
+                } else {
+                  // It's already a string (like "Tomorrow")
+                  formattedDueDate = data.dueDate;
+                }
+              }
+
+              return {
+                id: docSnap.id,
+                title: data.title || data.className || "Untitled Assessment",
+                className: data.className || "Untitled",
+                story: data.story || "",
+                questions: data.questions || [],
+                dueDate: formattedDueDate,
+                status: data.status || "active",
+              };
+            },
+          );
 
           setAssessments(assessmentsList);
         } catch (error) {
@@ -64,7 +86,7 @@ export default function AssessmentsScreen() {
       };
 
       fetchAssessments();
-    }, [user?.uid])
+    }, [user?.uid]),
   );
 
   return (
@@ -94,7 +116,7 @@ export default function AssessmentsScreen() {
               <View style={styles.cardHeader}>
                 <Ionicons name="document-text" size={24} color="#146C43" />
                 <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>{item.className}</Text>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
                   <Text style={styles.cardSub}>
                     {item.questions.length} questions
                   </Text>

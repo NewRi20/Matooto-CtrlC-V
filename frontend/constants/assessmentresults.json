@@ -1,0 +1,124 @@
+{
+  "reports": [
+    {
+      "student_name": "Noah Bennett",
+      "subject": "English",
+      "first_assessment": {
+        "score_out_of_10": 4,
+        "rating": "Level 2"
+      },
+      "second_assessment": {
+        "score_out_of_10": 7,
+        "rating": "Level 4"
+      }
+    },
+    {
+      "student_name": "Emma Rodriguez",
+      "subject": "Math",
+      "first_assessment": {
+        "score_out_of_10": 6,
+        "rating": "Level 3"
+      },
+      "second_assessment": {
+        "score_out_of_10": 9,
+        "rating": "Level 5"
+      }
+    },
+    {
+      "student_name": "Liam Patel",
+      "subject": "Science",
+      "first_assessment": {
+        "score_out_of_10": 5,
+        "rating": "Level 3"
+      },
+      "second_assessment": {
+        "score_out_of_10": 8,
+        "rating": "Level 5"
+      }
+    },
+    {
+      "student_name": "Olivia Chen",
+      "subject": "English",
+      "first_assessment": {
+        "score_out_of_10": 3,
+        "rating": "Level 2"
+      },
+      "second_assessment": {
+        "score_out_of_10": 6,
+        "rating": "Level 4"
+      }
+    },
+    {
+      "student_name": "Ethan Walker",
+      "subject": "Math",
+      "first_assessment": {
+        "score_out_of_10": 7,
+        "rating": "Level 4"
+      },
+      "second_assessment": {
+        "score_out_of_10": 9,
+        "rating": "Level 5"
+      }
+    },
+    {
+      "student_name": "Sophia Nguyen",
+      "subject": "Science",
+      "first_assessment": {
+        "score_out_of_10": 2,
+        "rating": "Level 1"
+      },
+      "second_assessment": {
+        "score_out_of_10": 6,
+        "rating": "Level 4"
+      }
+    },
+    {
+      "student_name": "Mason Brooks",
+      "subject": "English",
+      "first_assessment": {
+        "score_out_of_10": 5,
+        "rating": "Level 3"
+      },
+      "second_assessment": {
+        "score_out_of_10": 8,
+        "rating": "Level 5"
+      }
+    },
+    {
+      "student_name": "Isabella Cruz",
+      "subject": "Math",
+      "first_assessment": {
+        "score_out_of_10": 6,
+        "rating": "Level 3"
+      },
+      "second_assessment": {
+        "score_out_of_10": 10,
+        "rating": "Level 5"
+      }
+    },
+    {
+      "student_name": "James Turner",
+      "subject": "Science",
+      "first_assessment": {
+        "score_out_of_10": 4,
+        "rating": "Level 2"
+      },
+      "second_assessment": {
+        "score_out_of_10": 7,
+        "rating": "Level 4"
+      }
+    },
+    {
+      "student_name": "Mia Sanders",
+      "subject": "English",
+      "first_assessment": {
+        "score_out_of_10": 3,
+        "rating": "Level 2"
+      },
+      "second_assessment": {
+        "score_out_of_10": 6,
+        "rating": "Level 4"
+      }
+    }
+  ]
+}

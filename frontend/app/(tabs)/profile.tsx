@@ -13,6 +13,7 @@ import { auth, db } from "@/service/firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 import { getClassesByStudent } from "@/service/classes.repository";
 import { useAuth } from "@/hooks/useAuth";
+import { Image } from "expo-image";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -89,7 +90,11 @@ export default function ProfileScreen() {
       </View>
       <View style={styles.content}>
         <View style={styles.avatarContainer}>
-          <Ionicons name="person-circle" size={100} color="#146C43" />
+          <Image
+            source={require("@/assets/images/mascot_head_smile.svg")}
+            style={styles.avatarImage}
+            contentFit="contain"
+          />
         </View>
 
         {/* User Info Card */}
@@ -183,6 +188,10 @@ const styles = StyleSheet.create({
   avatarContainer: {
     marginTop: 20,
     marginBottom: 20,
+  },
+  avatarImage: {
+    width: 120,
+    height: 120,
   },
   userInfoCard: {
     backgroundColor: "#FFF",

@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { db } from "../../../service/firebaseConfig";
 import { collection, query, where, getDocs, doc } from "firebase/firestore";
 import { useAuth } from "../../../hooks/useAuth";
@@ -29,41 +29,43 @@ export default function AssessmentsScreen() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch assessments on mount
-  useEffect(() => {
-    const fetchAssessments = async () => {
-      try {
-        if (!user?.uid) return;
+  // Fetch assessments when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchAssessments = async () => {
+        try {
+          if (!user?.uid) return;
 
-        const q = query(
-          collection(db, "assessments"),
-          where("teacherId", "==", user.uid),
-        );
-        const querySnapshot = await getDocs(q);
-        const assessmentsList: Assessment[] = [];
+          const q = query(
+            collection(db, "assessments"),
+            where("teacherId", "==", user.uid),
+          );
+          const querySnapshot = await getDocs(q);
+          const assessmentsList: Assessment[] = [];
 
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          assessmentsList.push({
-            id: docSnap.id,
-            className: data.className || "Untitled",
-            story: data.story || "",
-            questions: data.questions || [],
-            dueDate: data.dueDate || "No date",
-            status: data.status || "active",
+          querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            assessmentsList.push({
+              id: docSnap.id,
+              className: data.className || "Untitled",
+              story: data.story || "",
+              questions: data.questions || [],
+              dueDate: data.dueDate || "No date",
+              status: data.status || "active",
+            });
           });
-        });
 
-        setAssessments(assessmentsList);
-      } catch (error) {
-        console.error("Error fetching assessments:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+          setAssessments(assessmentsList);
+        } catch (error) {
+          console.error("Error fetching assessments:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
 
-    fetchAssessments();
-  }, [user?.uid]);
+      fetchAssessments();
+    }, [user?.uid])
+  );
 
   return (
     <SafeAreaView style={styles.container}>

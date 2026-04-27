@@ -5,11 +5,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Share,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 
@@ -21,12 +21,17 @@ import {
 
 export default function ClassListScreen() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, initializing } = useAuth();
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState(true);
 
   const loadClasses = async () => {
+    if (initializing) {
+      return;
+    }
+
     if (!user) {
+      setClasses([]);
       setLoading(false);
       return;
     }
@@ -43,13 +48,17 @@ export default function ClassListScreen() {
 
   useEffect(() => {
     void loadClasses();
-  }, [user]);
+  }, [user, initializing]);
 
   // Refresh when screen is focused
   useFocusEffect(
     React.useCallback(() => {
+      if (initializing) {
+        return;
+      }
+
       void loadClasses();
-    }, [user]),
+    }, [user, initializing]),
   );
 
   const handleShareCode = async (classCode: string, className: string) => {
@@ -65,7 +74,7 @@ export default function ClassListScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView edges={["top"]} style={styles.container}>
         <View style={styles.centerState}>
           <ActivityIndicator size="large" color="#146C43" />
           <Text style={styles.centerStateText}>Loading your classes...</Text>
@@ -75,16 +84,18 @@ export default function ClassListScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView edges={["top"]} style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Classes</Text>
-        <TouchableOpacity
-          style={styles.createButton}
-          onPress={() => router.push("/(teacher)/classes/create" as any)}
-        >
-          <Ionicons name="add" size={18} color="#FFF" />
-          <Text style={styles.createButtonText}>Create Class</Text>
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.createButton}
+            onPress={() => router.push("/(teacher)/classes/create" as any)}
+          >
+            <Ionicons name="add" size={18} color="#FFF" />
+            <Text style={styles.createButtonText}>Create Class</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -138,6 +149,7 @@ export default function ClassListScreen() {
           ))
         )}
       </ScrollView>
+
     </SafeAreaView>
   );
 }
@@ -150,16 +162,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#EEE",
   },
-  createButton: {
+  headerActions: {
     marginTop: 14,
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
+    justifyContent: "flex-start",
+  },
+  createButton: {
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: "#146C43",
     borderRadius: 999,
     paddingHorizontal: 14,
     paddingVertical: 10,
     gap: 6,
+    flex: 1,
+    marginLeft: 6,
   },
   createButtonText: { color: "#FFF", fontWeight: "700", fontSize: 13 },
   headerTitle: { fontSize: 24, fontWeight: "bold", color: "#146C43" },

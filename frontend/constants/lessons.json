@@ -1,0 +1,98 @@
+{
+  "english": [
+    {
+      "title": "Understanding Nouns",
+      "subject": "English",
+      "body": "A noun is a word that names a person, place, thing, or idea. For example, words like \"teacher,\" \"school,\" \"apple,\" and \"happiness\" are all nouns. Nouns help us clearly identify what we are talking about in a sentence, making communication more precise and meaningful.\n\nThere are different kinds of nouns, such as common nouns and proper nouns. Common nouns refer to general items like \"city\" or \"dog,\" while proper nouns name specific ones like \"London\" or \"Buddy.\" Learning nouns helps children expand their vocabulary and understand how language is structured in everyday communication.",
+      "bag_of_words": ["noun", "person", "place", "thing", "idea", "proper", "common", "name", "object", "concept"]
+    },
+    {
+      "title": "Exploring Verbs",
+      "subject": "English",
+      "body": "Verbs are action words that show what someone or something is doing. Words like \"run,\" \"jump,\" \"eat,\" and \"think\" are verbs. They are essential because they bring sentences to life by showing movement, actions, or states of being.\n\nSome verbs describe physical actions, while others describe feelings or thoughts, such as \"believe\" or \"wonder.\" Understanding verbs helps students form complete sentences and express ideas more clearly, improving both speaking and writing skills over time.",
+      "bag_of_words": ["verb", "action", "move", "think", "jump", "state", "energy", "express", "activity", "process"]
+    },
+    {
+      "title": "Learning Adjectives",
+      "subject": "English",
+      "body": "Adjectives are words that describe nouns. They give more details about a person, place, or thing. For example, in the phrase \"a bright sun,\" the word \"bright\" is an adjective describing the sun.\n\nUsing adjectives makes sentences more colorful and interesting. Instead of saying \"a dog,\" you can say \"a playful, energetic dog.\" This helps readers and listeners create clearer mental pictures and enhances creative expression in storytelling.",
+      "bag_of_words": ["adjective", "describe", "colorful", "detail", "bright", "creative", "imagine", "quality", "feature", "vivid"]
+    },
+    {
+      "title": "Sentence Structure Basics",
+      "subject": "English",
+      "body": "A sentence is a group of words that expresses a complete thought. Most sentences have a subject and a predicate. The subject tells who or what the sentence is about, and the predicate tells what the subject does.\n\nFor example, in the sentence \"The cat sleeps,\" \"The cat\" is the subject and \"sleeps\" is the predicate. Understanding sentence structure helps students write clearly and avoid confusion when sharing ideas.",
+      "bag_of_words": ["sentence", "subject", "predicate", "structure", "complete", "thought", "grammar", "clarity", "meaning", "order"]
+    },
+    {
+      "title": "Using Capital Letters",
+      "subject": "English",
+      "body": "Capital letters are used at the beginning of sentences and for proper nouns. This includes names of people, places, days of the week, and months. For example, \"Sarah,\" \"Monday,\" and \"Paris\" all begin with capital letters.\n\nUsing capital letters correctly makes writing easier to read and understand. It also shows attention to detail and helps students follow important grammar rules that improve overall communication skills.",
+      "bag_of_words": ["capital", "letter", "proper", "name", "sentence", "grammar", "rule", "correct", "writing", "format"]
+    }
+  ],
+  "math": [
+    {
+      "title": "Addition Basics",
+      "subject": "Math",
+      "body": "Addition is the process of combining two or more numbers to find a total. For example, 2 + 3 equals 5. It is one of the first mathematical operations children learn and is used in everyday life.\n\nPracticing addition helps build strong number sense and confidence. As students progress, they begin solving larger problems and applying addition in real-world situations like counting money or measuring quantities.",
+      "bag_of_words": ["addition", "sum", "total", "combine", "numbers", "count", "increase", "value", "calculate", "result"]
+    },
+    {
+      "title": "Understanding Subtraction",
+      "subject": "Math",
+      "body": "Subtraction is the process of taking one number away from another. For example, 5 - 2 equals 3. It helps us understand how much remains after something is removed.\n\nLearning subtraction builds problem-solving skills and logical thinking. Students use subtraction in everyday activities, such as sharing items or determining differences between quantities.",
+      "bag_of_words": ["subtraction", "minus", "difference", "remove", "less", "remain", "calculate", "compare", "decrease", "solve"]
+    },
+    {
+      "title": "Introduction to Multiplication",
+      "subject": "Math",
+      "body": "Multiplication is a faster way to add the same number multiple times. For example, 3 × 4 means adding 3 four times, which equals 12. It helps simplify repeated addition problems.\n\nUnderstanding multiplication prepares students for more advanced math concepts. It is widely used in daily life, such as calculating totals when buying multiple items.",
+      "bag_of_words": ["multiplication", "times", "groups", "repeat", "product", "multiply", "total", "factor", "array", "count"]
+    },
+    {
+      "title": "Basics of Division",
+      "subject": "Math",
+      "body": "Division is the process of splitting a number into equal parts. For example, 12 ÷ 3 equals 4, meaning 12 is divided into 3 equal groups of 4.\n\nLearning division helps students understand sharing and grouping. It also strengthens their ability to solve real-life problems involving equal distribution and fair sharing.",
+      "bag_of_words": ["division", "divide", "equal", "share", "group", "split", "quotient", "parts", "fair", "separate"]
+    },
+    {
+      "title": "Recognizing Shapes",
+      "subject": "Math",
+      "body": "Shapes are all around us and include forms like circles, squares, triangles, and rectangles. Each shape has unique properties, such as the number of sides or corners.\n\nRecognizing shapes helps develop spatial awareness and observation skills. It also builds a foundation for geometry, which is important in many real-world applications like design and construction.",
+      "bag_of_words": ["shape", "circle", "square", "triangle", "rectangle", "sides", "corners", "geometry", "space", "form"]
+    }
+  ],
+  "science": [
+    {
+      "title": "Living and Non-Living Things",
+      "subject": "Science",
+      "body": "Living things are organisms that grow, move, breathe, and reproduce. Examples include animals, plants, and humans. Non-living things do not have these characteristics, such as rocks, water, and air.\n\nUnderstanding the difference helps students observe the world more carefully. It also introduces basic biology concepts that explain how life functions and interacts with the environment.",
+      "bag_of_words": ["living", "nonliving", "organism", "grow", "breathe", "reproduce", "environment", "biology", "nature", "observe"]
+    },
+    {
+      "title": "The Water Cycle",
+      "subject": "Science",
+      "body": "The water cycle describes how water moves around the Earth. It includes processes like evaporation, condensation, and precipitation. Water changes form but never disappears.\n\nLearning about the water cycle helps students understand weather patterns and the importance of water conservation. It also shows how natural systems are connected and continuously changing.",
+      "bag_of_words": ["water", "cycle", "evaporation", "condensation", "precipitation", "weather", "cloud", "rain", "process", "change"]
+    },
+    {
+      "title": "States of Matter",
+      "subject": "Science",
+      "body": "Matter exists in three main states: solid, liquid, and gas. Solids have a fixed shape, liquids flow and take the shape of their container, and gases spread out to fill space.\n\nUnderstanding states of matter helps explain how materials behave under different conditions. It also introduces scientific thinking about physical changes and properties of substances.",
+      "bag_of_words": ["matter", "solid", "liquid", "gas", "state", "change", "property", "material", "science", "energy"]
+    },
+    {
+      "title": "Plants and Their Parts",
+      "subject": "Science",
+      "body": "Plants have different parts that perform specific functions. Roots absorb water, stems support the plant, leaves make food, and flowers help in reproduction.\n\nLearning about plant parts helps students understand how plants grow and survive. It also highlights the importance of plants in providing oxygen and food for living organisms.",
+      "bag_of_words": ["plant", "root", "stem", "leaf", "flower", "grow", "food", "oxygen", "nature", "function"]
+    },
+    {
+      "title": "The Solar System",
+      "subject": "Science",
+      "body": "The solar system consists of the Sun and the objects that orbit around it, including planets, moons, and asteroids. Earth is one of eight planets that revolve around the Sun.\n\nStudying the solar system helps students understand space and Earth's place in it. It also encourages curiosity about astronomy and the vast universe beyond our planet.",
+      "bag_of_words": ["solar", "system", "planet", "sun", "orbit", "space", "earth", "moon", "asteroid", "universe"]
+    }
+  ]
+}

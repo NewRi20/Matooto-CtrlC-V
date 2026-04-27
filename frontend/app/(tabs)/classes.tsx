@@ -165,6 +165,13 @@ export default function ClassesScreen() {
           </>
         )}
       </ScrollView>
+      
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setJoinModalVisible(true)}
+      >
+        <Ionicons name="add" size={24} color="#FFF" />
+      </TouchableOpacity>
 
       {/* Join Class Modal */}
       <Modal
@@ -252,22 +259,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#146C43',
   },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#146C43',
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5,
-  },
   joinButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -283,6 +274,33 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '700',
     fontSize: 14,
+  },
+  joinButtonLarge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#146C43',
+    borderRadius: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 8,
+    marginTop: 16,
+  },
+  joinButtonLargeText: {
+    color: '#FFF',
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  joinButtonFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#146C43',
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginTop: 8,
+    marginBottom: 80,
+    gap: 8,
   },
   content: {
     padding: 20,

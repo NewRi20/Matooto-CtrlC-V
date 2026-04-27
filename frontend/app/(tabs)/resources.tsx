@@ -18,7 +18,7 @@ export default function ResourcesScreen() {
 
   const handleSubjectPress = (subject: Subject) => {
     router.push({
-      pathname: "/resources/lessons",
+      pathname: "/resources/lessons" as any,
       params: { subject },
     });
   };

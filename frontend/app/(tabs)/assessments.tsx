@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { auth, db } from '@/service/firebaseConfig';
 import { getClassesByStudent } from '@/service/classes.repository';
 import { getAssessmentsByClass, AssessmentData } from '@/service/assessments.repository';
@@ -21,9 +21,11 @@ export default function AssessmentsScreen() {
 
   const tabs = ['All', 'Pending', 'Completed'];
 
-  useEffect(() => {
-    fetchStudentAssessments();
-  }, []);
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchStudentAssessments();
+    }, [])
+  );
 
   const fetchClassInfo = async (classId: any) => {
     try {

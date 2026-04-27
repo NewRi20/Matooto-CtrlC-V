@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { auth, db } from "@/service/firebaseConfig";
 import { getClassesByStudent } from "@/service/classes.repository";
 import {
@@ -193,11 +192,9 @@ export default function DashboardScreen() {
             </View>
           </View>
           <View style={styles.petImageContainer}>
-            <Image
-              source={require("@/assets/images/pet_5.svg")}
-              style={{ width: 100, height: 100 }}
-              contentFit="contain"
-            />
+            <View style={styles.petAvatar}>
+              <Ionicons name="happy" size={44} color="#146C43" />
+            </View>
           </View>
         </View>
         {/* Action Button */}
@@ -299,6 +296,7 @@ export default function DashboardScreen() {
         )}
         <View style={{ height: 20 }} />
       </ScrollView>
+
     </SafeAreaView>
   );
 }
@@ -379,6 +377,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginLeft: 15,
+  },
+  petAvatar: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#FFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#C8E6C9",
   },
   actionButton: {
     backgroundColor: "#146C43",

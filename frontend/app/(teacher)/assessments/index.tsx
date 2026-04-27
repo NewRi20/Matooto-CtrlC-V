@@ -9,13 +9,14 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import { db } from "../../../service/firebaseConfig";
 import { collection, query, where, getDocs, doc } from "firebase/firestore";
 import { useAuth } from "../../../hooks/useAuth";
 
 interface Assessment {
   id: string;
+  title: string;
   className: string;
   story: string;
   questions: any[];
@@ -29,41 +30,64 @@ export default function AssessmentsScreen() {
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch assessments on mount
-  useEffect(() => {
-    const fetchAssessments = async () => {
-      try {
-        if (!user?.uid) return;
+  // Fetch assessments when screen is focused
+  useFocusEffect(
+    React.useCallback(() => {
+      const fetchAssessments = async () => {
+        try {
+          setLoading(true);
 
-        const q = query(
-          collection(db, "assessments"),
-          where("teacherId", "==", user.uid),
-        );
-        const querySnapshot = await getDocs(q);
-        const assessmentsList: Assessment[] = [];
+          if (!user?.uid) {
+            setLoading(false);
+            return;
+          }
 
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          assessmentsList.push({
-            id: docSnap.id,
-            className: data.className || "Untitled",
-            story: data.story || "",
-            questions: data.questions || [],
-            dueDate: data.dueDate || "No date",
-            status: data.status || "active",
-          });
-        });
+          const q = query(
+            collection(db, "assessments"),
+            where("teacherId", "==", doc(db, "users", user.uid)), // Pass a doc reference
+          );
 
-        setAssessments(assessmentsList);
-      } catch (error) {
-        console.error("Error fetching assessments:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+          const querySnapshot = await getDocs(q);
 
-    fetchAssessments();
-  }, [user?.uid]);
+          const assessmentsList: Assessment[] = querySnapshot.docs.map(
+            (docSnap) => {
+              const data = docSnap.data();
+
+              // Handle the date conversion safely
+              let formattedDueDate = "No date";
+              if (data.dueDate) {
+                if (data.dueDate.toDate) {
+                  // It's a Firestore Timestamp object
+                  formattedDueDate = data.dueDate.toDate().toLocaleDateString();
+                } else {
+                  // It's already a string (like "Tomorrow")
+                  formattedDueDate = data.dueDate;
+                }
+              }
+
+              return {
+                id: docSnap.id,
+                title: data.title || data.className || "Untitled Assessment",
+                className: data.className || "Untitled",
+                story: data.story || "",
+                questions: data.questions || [],
+                dueDate: formattedDueDate,
+                status: data.status || "active",
+              };
+            },
+          );
+
+          setAssessments(assessmentsList);
+        } catch (error) {
+          console.error("Error fetching assessments:", error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchAssessments();
+    }, [user?.uid]),
+  );
 
   return (
     <SafeAreaView style={styles.container}>
@@ -92,7 +116,7 @@ export default function AssessmentsScreen() {
               <View style={styles.cardHeader}>
                 <Ionicons name="document-text" size={24} color="#146C43" />
                 <View style={styles.cardInfo}>
-                  <Text style={styles.cardTitle}>{item.className}</Text>
+                  <Text style={styles.cardTitle}>{item.title}</Text>
                   <Text style={styles.cardSub}>
                     {item.questions.length} questions
                   </Text>

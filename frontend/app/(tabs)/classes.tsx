@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   Modal,
@@ -11,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 
@@ -79,6 +79,13 @@ export default function ClassesScreen() {
       <SafeAreaView style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>My Classes</Text>
+          <TouchableOpacity
+            style={styles.joinButton}
+            onPress={() => setJoinModalVisible(true)}
+          >
+            <Ionicons name="log-in-outline" size={18} color="#FFF" />
+            <Text style={styles.joinButtonText}>Join Class</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.centerState}>
           <ActivityIndicator size="large" color="#146C43" />
@@ -98,6 +105,13 @@ export default function ClassesScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Classes</Text>
+        <TouchableOpacity
+          style={styles.joinButton}
+          onPress={() => setJoinModalVisible(true)}
+        >
+          <Ionicons name="log-in-outline" size={18} color="#FFF" />
+          <Text style={styles.joinButtonText}>Join Class</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
@@ -151,6 +165,13 @@ export default function ClassesScreen() {
           </>
         )}
       </ScrollView>
+      
+      <TouchableOpacity
+        style={styles.fab}
+        onPress={() => setJoinModalVisible(true)}
+      >
+        <Ionicons name="add" size={24} color="#FFF" />
+      </TouchableOpacity>
 
       {/* Join Class Modal */}
       <Modal
@@ -241,11 +262,13 @@ const styles = StyleSheet.create({
   joinButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: '#146C43',
-    borderRadius: 8,
+    borderRadius: 999,
     paddingHorizontal: 16,
     paddingVertical: 12,
     gap: 8,
+    alignSelf: 'flex-start',
   },
   joinButtonText: {
     color: '#FFF',
@@ -253,30 +276,30 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   joinButtonLarge: {
-    marginTop: 24,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#146C43',
     borderRadius: 12,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     gap: 8,
+    marginTop: 16,
   },
   joinButtonLargeText: {
     color: '#FFF',
     fontWeight: '700',
-    fontSize: 16,
+    fontSize: 15,
   },
   joinButtonFooter: {
-    marginTop: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#146C43',
     borderRadius: 12,
-    paddingHorizontal: 24,
     paddingVertical: 14,
+    marginTop: 8,
+    marginBottom: 80,
     gap: 8,
   },
   content: {
@@ -457,6 +480,22 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontWeight: '700',
     fontSize: 15,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 30,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#146C43',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
 });
 

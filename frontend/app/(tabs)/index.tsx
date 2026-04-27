@@ -172,7 +172,7 @@ export default function DashboardScreen() {
         {/* Top Bar */}
         <View style={styles.topBar}>
           <View>
-            <Text style={styles.greeting}>Good morning, {displayName}! 👋</Text>
+            <Text style={styles.greeting}>Good morning, {displayName}! <Text>👋</Text></Text>
             <Text style={styles.subGreeting}>
               Ready to learn something new today?
             </Text>
@@ -294,7 +294,7 @@ export default function DashboardScreen() {
             )}
           </>
         )}
-        <View style={{ height: 20 }} /> {/* Padding */}
+        <View style={{ height: 20 }} />
       </ScrollView>
 
     </SafeAreaView>

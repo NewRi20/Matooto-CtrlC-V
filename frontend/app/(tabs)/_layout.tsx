@@ -41,7 +41,10 @@ export default function TabLayout() {
       <Tabs.Screen
         name="classes"
         options={{
-          href: null,
+          title: "Classes",
+          tabBarIcon: ({ color }) => (
+            <Ionicons size={24} name="school" color={color} />
+          ),
         }}
       />
       <Tabs.Screen
@@ -56,9 +59,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="resources"
         options={{
-          title: "Classes",
+          title: "Resources",
           tabBarIcon: ({ color }) => (
-            <Ionicons size={24} name="school" color={color} />
+            <Ionicons size={24} name="book" color={color} />
           ),
         }}
       />

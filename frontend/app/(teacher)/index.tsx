@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
@@ -23,11 +23,7 @@ export default function TeacherDashboard() {
         {/* Header Section */}
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Ionicons name="happy" size={32} color="#146C43" />
-            <View style={{ marginLeft: 5 }}>
-              <Text style={styles.logoTitle}>Matooto</Text>
-              <Text style={styles.logoSub}>Learn. Grow. Soar.</Text>
-            </View>
+            <Text style={styles.logoTitle}>Matooto</Text>
           </View>
 
           <View style={styles.headerIcons}>
@@ -158,20 +154,15 @@ export default function TeacherDashboard() {
         </View>
 
         {/* Reports Shortcut */}
-        <Text style={[styles.sectionTitle, { marginTop: 10 }]}>REPORTS SHORTCUT</Text>
+        <Text style={[styles.sectionTitle, { marginTop: 10 }]}>REPORT</Text>
         <View style={styles.reportsContainer}>
-          <TouchableOpacity style={styles.reportCard}>
+          <TouchableOpacity 
+            style={styles.reportCard}
+            onPress={() => router.push('/(teacher)/reports')}
+          >
             <Ionicons name="people" size={32} color="#146C43" />
             <View style={{ marginLeft: 10, flex: 1 }}>
-              <Text style={styles.reportTitle}>Parent Consultation{'\n'}Report</Text>
-              <Text style={styles.generateText}>Generate</Text>
-            </View>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.reportCard}>
-            <Ionicons name="stats-chart" size={32} color="#146C43" />
-            <View style={{ marginLeft: 10, flex: 1 }}>
-              <Text style={styles.reportTitle}>Reading Comprehension{'\n'}Report</Text>
+              <Text style={styles.reportTitle}>Parent Consultation Report</Text>
               <Text style={styles.generateText}>Generate</Text>
             </View>
           </TouchableOpacity>
